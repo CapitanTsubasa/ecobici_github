@@ -55,7 +55,7 @@ ROOT_URLCONF = 'ecobici_proyecto.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / "templates"], #BORRAR SI SE ROMPE
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
