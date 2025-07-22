@@ -1,12 +1,53 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-3">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Proyecto Ecobici Web</title>
+    <title>Casos por Motivo</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <h1>Proyecto Ecobici Web</h1>
     <p> {{ mensaje }}</p>
+
+
+<h2>Cantidad de bicicletas por estado</h2>
+<div style="display: flex; justify-content: left;">
+    <canvas id="graficoStatus" style="max-width: 400px; max-height: 400px;"></canvas>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const data = {
+        labels: {{ labels|safe }},
+        datasets: [{
+            label: 'Cantidad por estado',
+            data: {{ valores|safe }},
+            backgroundColor: [
+                'rgba(75, 192, 192, 0.6)',
+                'rgba(255, 159, 64, 0.6)',
+                'rgba(255, 99, 132, 0.6)',
+                'rgba(54, 162, 235, 0.6)',
+                'rgba(153, 102, 255, 0.6)',
+                'rgba(201, 203, 207, 0.6)',
+                'rgba(255, 205, 86, 0.6)',
+                ],
+                }]
+            };
+
+    const config = {
+        type: 'pie',
+        data: data,
+        options: {
+            responsive: true,
+        }
+    };
+
+    new Chart(
+        document.getElementById('graficoStatus'),
+        config
+    );
+</script>
+
 </body>
 </html>
