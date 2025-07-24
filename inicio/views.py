@@ -36,3 +36,24 @@ def index(request):
     }
 
     return render(request, 'inicio/index.html', context)
+
+#PROBANDO SUBIR VIAJES EN OTRO HTML
+def viajes(request):
+    ruta = r'C:\Users\20349069890\ecobici_github\Viajes.csv'
+    df = pd.read_csv(ruta, sep=';', encoding='latin1')
+
+    # Asegurar que 'Mes-Año' esté como string
+    df['Mes-Año'] = df['Mes-Año'].astype(str)
+
+    context = {
+        'labels': list(df['Mes-Año']),
+        'q_viajes': list(df['Q_Viajes']),
+        'acumulado': list(df['Acumulado_Viajes']),
+        'promedio': list(df['promedio_diario_dia_habil']),
+        'usuarios_unicos': list(df['Usuarios_Unicos']),
+        'usuarios_registrados': list(df['Usuarios_Registrados'])
+    }
+
+    return render(request, 'inicio/viajes.html', context)
+
+print("Columnas reales del CSV:")
