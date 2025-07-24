@@ -9,10 +9,10 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-    
-    <!-- PRINCIPIO DE PRUEBA BARRRA --> 
+
+    <!-- PRINCIPIO DE PRUEBA BARRA --> 
 <div class="input">
-  <button class="value">
+  <a href="{% url 'index' %}" class="value" style="text-decoration: none;">
     <svg
       viewBox="0 0 16 16"
       xmlns="http://www.w3.org/2000/svg"
@@ -24,8 +24,8 @@
       ></path>
     </svg>
     STATUS GENERAL
-  </button>
-  <button class="value">
+  </a>
+  <a href="{% url 'viajes' %}" class="value" style="text-decoration: none;">
     <svg id="Line" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
       <path
         fill="#7D8590"
@@ -38,8 +38,8 @@
         d="m16 23c-3.859 0-7-3.141-7-7s3.141-7 7-7 7 3.141 7 7-3.141 7-7 7zm0-12c-2.757 0-5 2.243-5 5s2.243 5 5 5 5-2.243 5-5-2.243-5-5-5z"
       ></path>
     </svg>
-    ROBOS Y RECUPEROS
-  </button>
+    VIAJES
+  </a>
   <button class="value">
     <svg viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
       <path
@@ -70,11 +70,12 @@
         fill-rule="evenodd"
       ></path>
     </svg>
-    Notifications
+    ACCESOS DIRECTOS
   </button>
 </div>
-    <!-- FIN DE PRUEBA BARRRA --> 
+    <!-- FIN DE PRUEBA BARRA -->
 
+{% block content %}
     <h1>Proyecto Ecobici Web</h1>
     <p> {{ mensaje }}</p>
 
@@ -116,6 +117,7 @@
         config
     );
 </script>
+{% endblock content %}
 
 </body>
 </html>
