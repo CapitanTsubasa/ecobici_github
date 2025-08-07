@@ -3,6 +3,7 @@ import pandas as pd
 import os
 from collections import Counter
 
+
 # Create your views here.
 def index(request):
     context = {"mensaje": "Bienvenidos a la pagina de ecobici"}
@@ -57,3 +58,19 @@ def viajes(request):
     return render(request, 'inicio/viajes.html', context)
 
 print("Columnas reales del CSV:")
+
+
+def motivos_desaparecidas(request):
+    ruta = r'C:\Users\20349069890\ecobici_github\PP_DESAPARECIDAS.csv'
+    df = pd.read_csv(ruta, sep=';', encoding='latin1')
+
+    # Agrupar y contar por motivo
+    conteo = df['MOTIVO'].value_counts().reset_index()
+    conteo.columns = ['motivo', 'cantidad']
+
+    # Pasar los datos al template
+    context = {
+        'motivos': list(conteo['motivo']),
+        'cantidades': list(conteo['cantidad']),
+    }
+    return render(request, 'inicio/motivos.html', context)
