@@ -4,11 +4,11 @@
 <h2>Visualización de Viajes</h2>
 
 <div style="display: flex; flex-wrap: wrap; gap: 30px;">
-    <canvas id="graficoViajes" width="400" height="200"></canvas>
-    <canvas id="graficoAcumulado" width="400" height="200"></canvas>
-    <canvas id="graficoPromedio" width="400" height="200"></canvas>
-    <canvas id="graficoUsuariosUnicos" width="400" height="200"></canvas>
-    <canvas id="graficoRegistrados" width="400" height="200"></canvas>
+    <canvas id="graficoViajes" width="200" height="100"></canvas>
+    <canvas id="graficoAcumulado" width="200" height="100"></canvas>
+    <canvas id="graficoPromedio" width="200" height="100"></canvas>
+    <canvas id="graficoUsuariosUnicos" width="200" height="100"></canvas>
+    <canvas id="graficoRegistrados" width="200" height="100"></canvas>
 </div>
 
 <script>
@@ -20,7 +20,7 @@
     const usuarios_registrados = {{ usuarios_registrados|safe }};
 
     new Chart(document.getElementById('graficoViajes'), {
-        type: 'bar',
+        type: 'line',
         data: {
             labels: labels,
             datasets: [{

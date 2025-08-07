@@ -1,0 +1,42 @@
+{% extends 'inicio/index.html' %}
+
+{% block content %}
+<h2 style="text-align:center;">Motivos de desapariciones</h2>
+<canvas id="graficoMotivos" width="800" height="400"></canvas>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const ctx = document.getElementById('graficoMotivos').getContext('2d');
+  const chart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+          labels: {{ motivos|safe }},
+          datasets: [{
+              label: 'Cantidad',
+              data: {{ cantidades|safe }},
+              backgroundColor: 'rgba(54, 162, 235, 0.6)',
+              borderColor: 'rgba(54, 162, 235, 1)',
+              borderWidth: 1
+          }]
+      },
+      options: {
+          responsive: true,
+          scales: {
+              y: {
+                  beginAtZero: true,
+                  title: {
+                      display: true,
+                      text: 'Cantidad'
+                  }
+              },
+              x: {
+                  title: {
+                      display: true,
+                      text: 'Motivo'
+                  }
+              }
+          }
+      }
+  });
+</script>
+{% endblock %}
