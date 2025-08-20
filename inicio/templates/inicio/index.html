@@ -10,9 +10,9 @@
 </head>
 <body>
 
-    <!-- PRINCIPIO DE PRUEBA BARRA --> 
+    <!-- PRINCIPIO DE PRUEBA BARRA/MENU --> 
 <div class="input">
-  <a href="{% url 'index' %}" class="value" style="text-decoration: none;">
+  <a href="{% url 'index' %}" class="value" style="text-decoration: overline;">
     <svg
       viewBox="0 0 16 16"
       xmlns="http://www.w3.org/2000/svg"
@@ -25,7 +25,8 @@
     </svg>
     STATUS GENERAL
   </a>
-  <a href="{% url 'viajes' %}" class="value" style="text-decoration: none;">
+
+  <a href="{% url 'viajes' %}" class="value" style="text-decoration: overline;">
     <svg id="Line" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
       <path
         fill="#7D8590"
@@ -40,7 +41,8 @@
     </svg>
     VIAJES
   </a>
-  <a href="{% url 'motivos' %}" class="value" style="text-decoration: none;">
+
+  <a href="{% url 'motivos' %}" class="value" style="text-decoration: overline;">
     <svg viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
       <path
         fill="#7D8590"
@@ -49,6 +51,7 @@
     </svg>
     MOTIVOS
   </a>
+  <a href="{% url 'Estaciones' %}" class="value" style="text-decoration: overline;">
   <button class="value">
     <svg id="svg8" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
       <g id="layer1" transform="translate(-33.022 -30.617)">
@@ -60,6 +63,7 @@
       </g>
     </svg>
     ESTACIONES
+  </a>
   </button>
   <button class="value">
     <svg fill="none" viewBox="0 0 24 25" xmlns="http://www.w3.org/2000/svg">
