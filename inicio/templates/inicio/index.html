@@ -13,6 +13,7 @@
     <!-- PRINCIPIO DE PRUEBA BARRA/MENU --> 
 <div class="input">
   <a href="{% url 'index' %}" class="value" style="text-decoration: overline;">
+  <button class="value">
     <svg
       viewBox="0 0 16 16"
       xmlns="http://www.w3.org/2000/svg"
@@ -24,9 +25,11 @@
       ></path>
     </svg>
     STATUS GENERAL
+  </button>
   </a>
 
   <a href="{% url 'viajes' %}" class="value" style="text-decoration: overline;">
+  <button class="value">
     <svg id="Line" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
       <path
         fill="#7D8590"
@@ -40,9 +43,11 @@
       ></path>
     </svg>
     VIAJES
+  </button>
   </a>
 
   <a href="{% url 'motivos' %}" class="value" style="text-decoration: overline;">
+  <button class="value">
     <svg viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
       <path
         fill="#7D8590"
@@ -50,8 +55,10 @@
       ></path>
     </svg>
     MOTIVOS
+  </button>
   </a>
-  <a href="{% url 'Estaciones' %}" class="value" style="text-decoration: overline;">
+
+  <a href="{% url 'usuarios' %}" class="value" style="text-decoration: overline;">
   <button class="value">
     <svg id="svg8" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
       <g id="layer1" transform="translate(-33.022 -30.617)">
@@ -62,9 +69,11 @@
         ></path>
       </g>
     </svg>
-    ESTACIONES
+    USUARIOS
   </a>
   </button>
+
+  <a href="{% url 'grafico_productos' %}" class="value" style="text-decoration: overline;">
   <button class="value">
     <svg fill="none" viewBox="0 0 24 25" xmlns="http://www.w3.org/2000/svg">
       <path
@@ -74,8 +83,10 @@
         fill-rule="evenodd"
       ></path>
     </svg>
-    ACCESOS DIRECTOS
+    ANALISIS DE PRODUCTOS
+  </a>
   </button>
+
 </div>
     <!-- FIN DE PRUEBA BARRA -->
 
@@ -85,7 +96,7 @@
 
 
 <h2>Cantidad de bicicletas por estado</h2>
-<div style="display: flex; justify-content: left;">
+<div style="display: flex; justify-content: left; background: white; padding: 15px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
     <canvas id="graficoStatus" style="max-width: 400px; max-height: 400px;"></canvas>
 </div>
 
@@ -97,9 +108,9 @@
             label: 'Cantidad por estado',
             data: {{ valores|safe }},
             backgroundColor: [
-                'rgba(75, 192, 192, 0.6)',
-                'rgba(255, 159, 64, 0.6)',
-                'rgba(255, 99, 132, 0.6)',
+                'rgba(255, 0, 0, 0.96)',
+                'rgba(24, 142, 0, 0.6)',
+                'rgba(243, 2, 54, 0.6)',
                 'rgba(54, 162, 235, 0.6)',
                 'rgba(153, 102, 255, 0.6)',
                 'rgba(201, 203, 207, 0.6)',

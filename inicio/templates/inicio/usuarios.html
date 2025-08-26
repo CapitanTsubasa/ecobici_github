@@ -1,0 +1,37 @@
+{% extends 'inicio/index.html' %}
+
+{% block content %}
+
+<h1>Listado de usuarios</h1>
+
+    <input type="text" id="searchInput" placeholder="Buscar por ID de ciclista..." onkeyup="filterTable()">
+
+    {{ tabla|safe }}
+
+    <script>
+        function filterTable() {
+            const input = document.getElementById("searchInput");
+            const filter = input.value.toUpperCase();
+            const table = document.querySelector("table");
+            const tr = table.getElementsByTagName("tr");
+
+            for (let i = 1; i < tr.length; i++) { // Empieza en 1 para saltar encabezado
+                const td = tr[i].getElementsByTagName("td")[0]; // Asume que ID_de_ciclista está en la primera columna
+                if (td) {
+                    const txtValue = td.textContent || td.innerText;
+                    tr[i].style.display = txtValue.toUpperCase().indexOf(filter) > -1 ? "" : "none";
+                }
+            }
+        }
+    </script>
+
+    
+<body>
+    <div class="container mt-4">
+        <h2>Usuarios desde Google Drive</h2>
+        <div>
+            {{ tabla|safe }}
+        </div>
+    </div>
+</body>
+{% endblock content %}
