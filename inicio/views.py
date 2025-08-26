@@ -92,6 +92,7 @@ def mostrar_usuarios(request):
         r'C:\Users\27384244926\Documents\Python_GIT\python_bicis\python_bicis\client.json',
         r'F:\python_bicis\python_bicis\client.json',
         r'c:\Users\20349069890\python_bicis\client.json'
+        r'c:\Users\20349069890\ecobici_github\client.json'
     ]
 
     key_path = next((ruta for ruta in rutas if os.path.exists(ruta)), None)
@@ -203,6 +204,7 @@ def grafico_productos(request):
         r'C:\Users\27384244926\Documents\Python_GIT\python_bicis\python_bicis\client.json',
         r'F:\python_bicis\python_bicis\client.json',
         r'c:\Users\20349069890\python_bicis\client.json'
+        r'c:\Users\20349069890\ecobici_github\client.json'
     ]
 
     key_path = next((ruta for ruta in rutas if os.path.exists(ruta)), None)
