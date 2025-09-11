@@ -1,42 +1,77 @@
 {% extends 'inicio/index.html' %}
 
 {% block content %}
-<h2 style="text-align:center;">Motivos de desapariciones</h2>
-<canvas id="graficoMotivos" width="800" height="400"></canvas>
+  <h2>Dashboard Desaparecidas</h2>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-  const ctx = document.getElementById('graficoMotivos').getContext('2d');
-  const chart = new Chart(ctx, {
+  <!-- Gráfico 1: Motivos -->
+<div style="display: flex; justify-content: space-around; flex-wrap: wrap;">
+    <div style="width: 30%;">
+        <h3>Motivos</h3>
+        <canvas id="graficoMotivos"></canvas>
+    </div>
+  <!-- Gráfico 2: Casos por Mes -->
+    <div style="width: 30%;">    
+        <h3>Casos por Mes</h3>
+        <canvas id="graficoMeses"></canvas>
+    </div>
+  <!-- Gráfico 3: Casos por Día de la Semana -->
+    <div style="width: 30%;"> 
+        <h3>Casos por Día de la Semana</h3>
+        <canvas id="graficoDias"></canvas>
+    </div>
+</div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    // Gráfico de Motivos
+    new Chart(document.getElementById('graficoMotivos'), {
       type: 'bar',
       data: {
-          labels: {{ motivos|safe }},
-          datasets: [{
-              label: 'Cantidad',
-              data: {{ cantidades|safe }},
-              backgroundColor: 'rgba(0, 63, 105, 0.6)',
-              borderColor: 'rgba(0, 0, 0, 1)',
-              borderWidth: 1
-          }]
-      },
-      options: {
-          responsive: true,
-          scales: {
-              y: {
-                  beginAtZero: true,
-                  title: {
-                      display: true,
-                      text: 'Cantidad'
-                  }
-              },
-              x: {
-                  title: {
-                      display: true,
-                      text: 'Motivo'
-                  }
-              }
-          }
+        labels: {{ motivos|safe }},
+        datasets: [{
+          label: 'Motivos',
+          data: {{ cant_motivos|safe }},
+          backgroundColor: 'rgba(54, 162, 235, 0.6)'
+        }]
       }
-  });
-</script>
+    });
+
+    // Gráfico de Casos por Mes
+    new Chart(document.getElementById('graficoMeses'), {
+      type: 'bar',
+      data: {
+        labels: {{ meses|safe }},
+        datasets: [{
+          label: 'Casos por mes',
+          data: {{ cant_meses|safe }},
+          borderColor: 'rgba(75, 192, 192, 1)',
+          backgroundColor: 'rgba(75, 192, 192, 0.3)',
+          fill: true,
+          tension: 0.2
+        }]
+      }
+    });
+
+    // Gráfico de Casos por Día de la Semana
+    new Chart(document.getElementById('graficoDias'), {
+      type: 'bar',
+      data: {
+        labels: {{ dias|safe }},
+        datasets: [{
+          label: 'Casos por día',
+          data: {{ cant_dias|safe }},
+          backgroundColor: [
+            'rgba(255, 99, 132, 0.6)',
+            'rgba(54, 162, 235, 0.6)',
+            'rgba(255, 206, 86, 0.6)',
+            'rgba(75, 192, 192, 0.6)',
+            'rgba(153, 102, 255, 0.6)',
+            'rgba(255, 159, 64, 0.6)',
+            'rgba(201, 203, 207, 0.6)'
+          ]
+        }]
+      }
+    });
+  </script>
 {% endblock %}
+

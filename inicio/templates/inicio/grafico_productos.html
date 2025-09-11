@@ -17,8 +17,8 @@ new Chart(ctx, {
         datasets: [{
             label: 'Cantidad de pases',
             data: {{ values|safe }},
-            backgroundColor: 'rgba(54, 162, 235, 0.6)',
-            borderColor: 'rgba(54, 162, 235, 1)',
+            backgroundColor: 'rgba(13, 161, 0, 0.6)',
+            borderColor: 'rgba(0, 0, 0, 1)',
             borderWidth: 1
         }]
     },
@@ -37,4 +37,6 @@ new Chart(ctx, {
     plugins: [ChartDataLabels]
 });
 </script>
+
+
 {% endblock %}

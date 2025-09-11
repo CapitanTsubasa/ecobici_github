@@ -1,17 +1,17 @@
-import os
-from django.shortcuts import render
-import pandas as pd
-from collections import Counter
-
-# Nuevo
-from django.shortcuts import render
-from io import BytesIO
 import plotly.express as px
+import os
 import json
+import pandas as pd
+import unicodedata
 
+from io import BytesIO
 from googleapiclient.discovery import build
 from google.oauth2 import service_account
 from googleapiclient.http import MediaIoBaseDownload
+from django.shortcuts import render
+
+from django.shortcuts import render
+from collections import Counter
 
 # Create your views here.
 def index(request):
@@ -69,20 +69,6 @@ def viajes(request):
 print("Columnas reales del CSV:")
 
 
-def motivos_desaparecidas(request):
-    ruta = r'C:\Users\20349069890\ecobici_github\PP_DESAPARECIDAS.csv'
-    df = pd.read_csv(ruta, sep=';', encoding='latin1')
-
-    # Agrupar y contar por motivo
-    conteo = df['MOTIVO'].value_counts().reset_index()
-    conteo.columns = ['motivo', 'cantidad']
-
-    # Pasar los datos al template
-    context = {
-        'motivos': list(conteo['motivo']),
-        'cantidades': list(conteo['cantidad']),
-    }
-    return render(request, 'inicio/motivos.html', context)
 
 #PROBANDO EL PROCESADO
 def mostrar_usuarios(request):
@@ -91,7 +77,7 @@ def mostrar_usuarios(request):
     rutas = [
         r'C:\Users\27384244926\Documents\Python_GIT\python_bicis\python_bicis\client.json',
         r'F:\python_bicis\python_bicis\client.json',
-        r'c:\Users\20349069890\python_bicis\client.json'
+        r'c:\Users\20349069890\python_bicis\client.json',
         r'c:\Users\20349069890\ecobici_github\client.json'
     ]
 
@@ -104,7 +90,7 @@ def mostrar_usuarios(request):
     )
     drive_service = build('drive', 'v3', credentials=credentials)
 
-    folder_id = '145SHi-USegx0Ch2RIPzNXm96bHfN_rQu'
+    folder_id = '15VrRfhgGQdVeOpD2Q_BD2287WCFWif8d'
     target_file_name = 'Bicicletas_acumulado_procesado_2025.csv'
 
     # Buscar el archivo
@@ -143,7 +129,7 @@ def grafico_productos_interactivo(request):
     rutas = [
         r'C:\Users\27384244926\Documents\Python_GIT\python_bicis\python_bicis\client.json',
         r'F:\python_bicis\python_bicis\client.json',
-        r'c:\Users\20349069890\python_bicis\client.json'
+        r'c:\Users\20349069890\python_bicis\client.json',
         r'c:\Users\20349069890\ecobici_github\client.json'
     ]
 
@@ -156,7 +142,7 @@ def grafico_productos_interactivo(request):
     )
     drive_service = build('drive', 'v3', credentials=credentials)
 
-    folder_id = '145SHi-USegx0Ch2RIPzNXm96bHfN_rQu'
+    folder_id = '15VrRfhgGQdVeOpD2Q_BD2287WCFWif8d'
     target_file_name = 'Bicicletas_acumulado_procesado_2025.csv'
 
     # Buscar el archivo
@@ -203,7 +189,7 @@ def grafico_productos(request):
     rutas = [
         r'C:\Users\27384244926\Documents\Python_GIT\python_bicis\python_bicis\client.json',
         r'F:\python_bicis\python_bicis\client.json',
-        r'c:\Users\20349069890\python_bicis\client.json'
+        r'c:\Users\20349069890\python_bicis\client.json',
         r'c:\Users\20349069890\ecobici_github\client.json'
     ]
 
@@ -216,7 +202,7 @@ def grafico_productos(request):
     )
     drive_service = build('drive', 'v3', credentials=credentials)
 
-    folder_id = '145SHi-USegx0Ch2RIPzNXm96bHfN_rQu'
+    folder_id = '15VrRfhgGQdVeOpD2Q_BD2287WCFWif8d'
     target_file_name = 'Bicicletas_acumulado_procesado_2025.csv'
 
     # Buscar el archivo
@@ -242,14 +228,61 @@ def grafico_productos(request):
     # Cargar CSV en pandas
     df = pd.read_csv(file_stream, encoding="latin-1", sep="\t")
 
+    # Normalizar texto
+    def normalizar(texto):
+        texto = str(texto).lower()
+        texto = unicodedata.normalize("NFD", texto)
+        texto = "".join(c for c in texto if unicodedata.category(c) != "Mn")
+        return texto.strip()
+
+    df["Nombre_normalizado"] = df["Nombre_de_producto"].apply(normalizar)
+
+    # Filtrar todos los que tengan la palabra "basico"
+    df_filtrado = df[~df["Nombre_normalizado"].str.contains("basico")]
+
     # Contar viajes por pase
-    conteo_pases = df["Nombre_de_producto"].value_counts()
+    conteo_pases = df_filtrado["Nombre_de_producto"].value_counts()
 
     labels = list(conteo_pases.index)
-    # convertimos los valores a int nativo
     values = [int(v) for v in conteo_pases.values]
 
+    # 👉 IMPORTANTE: devolver la respuesta
     return render(request, "inicio/grafico_productos.html", {
         "labels": json.dumps(labels),
         "values": json.dumps(values)
     })
+
+# MOTIVOS.HTML - DESAPARECIDAS.CSV   
+
+def dashboard(request):
+    ruta = r'C:\Users\20349069890\ecobici_github\PP_DESAPARECIDAS.csv'
+    df = pd.read_csv(ruta, sep=';', encoding='latin1')
+
+    # --- Gráfico 1: Motivos ---
+    conteo_motivos = df['MOTIVO'].value_counts().reset_index()
+    conteo_motivos.columns = ['motivo', 'cantidad']
+
+    # --- Gráfico 2: Casos por Mes ---
+    df['FECHA DE VIAJE'] = pd.to_datetime(df['FECHA DE VIAJE'], errors='coerce', dayfirst=True)
+    conteo_mes = df.groupby(df['FECHA DE VIAJE'].dt.to_period('M')).size().reset_index(name='cantidad')
+    conteo_mes['mes'] = conteo_mes['FECHA DE VIAJE'].astype(str)
+
+    # --- Gráfico 3: Casos por Día de Semana ---
+    df['DIA_SEMANA'] = df['FECHA DE VIAJE'].dt.day_name()
+    conteo_dia = df['DIA_SEMANA'].value_counts().reset_index()
+    conteo_dia.columns = ['dia', 'cantidad']
+
+    context = {
+        # Gráfico motivos
+        'motivos': list(conteo_motivos['motivo']),
+        'cant_motivos': list(conteo_motivos['cantidad']),
+        # Gráfico casos por mes
+        'meses': list(conteo_mes['mes']),
+        'cant_meses': list(conteo_mes['cantidad']),
+        # Gráfico casos por día de semana
+        'dias': list(conteo_dia['dia']),
+        'cant_dias': list(conteo_dia['cantidad']),
+    }
+    return render(request, 'inicio/motivos.html', context)
+
+# FIN MOTIVOS.HTML - DESAPARECIDAS.CSV
