@@ -272,6 +272,34 @@ def dashboard(request):
     conteo_dia = df['DIA_SEMANA'].value_counts().reset_index()
     conteo_dia.columns = ['dia', 'cantidad']
 
+    # --- Grafico Aseguramos mayúsculas y limpiamos espacios ---
+    df['MOTIVO'] = df['MOTIVO'].astype(str).str.upper().str.strip()
+    df['FECHA DE VIAJE'] = pd.to_datetime(df['FECHA DE VIAJE'], errors='coerce')
+
+    # Filtramos todos los que contengan VANDALISMO, sin importar lo que siga
+    df_vandalismo = df[df['MOTIVO'].str.contains(r'\bVANDALISMO', na=False, regex=True)]
+
+    # Agrupamos por mes
+    conteo_vandalismo = (
+        df_vandalismo.groupby(df_vandalismo['FECHA DE VIAJE'].dt.to_period('M'))
+        .size()
+        .reset_index(name='cantidad')
+    )
+    conteo_vandalismo['mes'] = conteo_vandalismo['FECHA DE VIAJE'].astype(str)
+
+    context = {
+        # otros datos...
+        'meses_vandalismo': list(conteo_vandalismo['mes']),
+        'cant_vandalismo': list(conteo_vandalismo['cantidad']),
+    }
+    print(df_vandalismo['MOTIVO'].unique())
+    print(len(df_vandalismo))
+
+    # --- Contador de casos "A LA ESPERA" ---
+    casos_espera = df[df['ESTADO ACTUALIZADO'] == 'A LA ESPERA'].shape[0]
+    casos_robada = df[df['ESTADO ACTUALIZADO'].isin(['ROBADA', 'ROBADA - RECUPERADA'])].shape[0]
+    casos_robada_recuperada = df[df['ESTADO ACTUALIZADO'] == 'ROBADA - RECUPERADA'].shape[0]
+
     context = {
         # Gráfico motivos
         'motivos': list(conteo_motivos['motivo']),
@@ -282,6 +310,10 @@ def dashboard(request):
         # Gráfico casos por día de semana
         'dias': list(conteo_dia['dia']),
         'cant_dias': list(conteo_dia['cantidad']),
+        # Contador
+        'casos_espera': casos_espera,
+        'casos_robada': casos_robada,
+        'casos_robada_recuperada': casos_robada_recuperada,
     }
     return render(request, 'inicio/motivos.html', context)
 

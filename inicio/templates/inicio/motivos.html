@@ -3,8 +3,34 @@
 {% block content %}
   <h2>Dashboard Desaparecidas</h2>
 
+  <!-- Tarjeta de contador -->
+  <!-- Contadores -->
+  <div style="display: flex; gap: 20px; margin-bottom: 20px;">
+      <!-- EN ESPERA -->
+      <div style="background-color: #800020; color: white; padding: 15px; width: 200px; 
+                  text-align: center; border-radius: 10px;">
+          <strong>DESAPARECIDAS ACTUALES</strong><br>
+          <span style="font-size: 24px;">{{ casos_espera }}</span>
+      </div>
+
+      <!-- ROBADAS -->
+      <div style="background-color: #004080; color: white; padding: 15px; width: 200px; 
+                  text-align: center; border-radius: 10px;">
+          <strong>ROBADAS TOTALES</strong><br>
+          <span style="font-size: 24px;">{{ casos_robada }}</span>
+      </div>
+
+      <!-- RECUPERADAS -->
+      <div style="background-color: #00530fff; color: white; padding: 15px; width: 150px; 
+                  text-align: center; border-radius: 10px;">
+          <strong>RECUPERADAS</strong><br>
+          <span style="font-size: 24px;">{{ casos_robada_recuperada }}</span>
+      </div>
+  </div>
+
   <!-- Gráfico 1: Motivos -->
-<div style="display: flex; justify-content: space-around; flex-wrap: wrap;">
+
+  <div style="display: flex; justify-content: space-around; flex-wrap: wrap;">
     <div style="width: 30%;">
         <h3>Motivos</h3>
         <canvas id="graficoMotivos"></canvas>
@@ -20,6 +46,14 @@
         <canvas id="graficoDias"></canvas>
     </div>
 </div>
+
+    <!-- Gráfico 4: Vandalismo por Mes -->
+  <div style="display: flex; justify-content: space-around; flex-wrap: wrap;">
+    <div style="width: 90%; margin: 40px auto;">
+        <h3>Casos de Vandalismo por Mes</h3>
+        <canvas id="graficoVandalismo"></canvas>
+    </div>
+  </div>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
@@ -72,6 +106,32 @@
         }]
       }
     });
+
+    // Gráfico de Vandalismo por Mes
+    new Chart(document.getElementById("graficoVandalismo"), {
+      type: 'line',
+      data: {
+        labels: {{ meses_vandalismo|default:"[]"|safe }},
+        datasets: [{
+          label: 'Casos de Vandalismo',
+          data: {{ cant_vandalismo|default:"[]"|safe }},
+          borderColor: 'red',
+          backgroundColor: 'rgba(255, 0, 0, 0.2)',
+          fill: true,
+          tension: 0.3
+        }]
+      },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: { position: 'top' },
+            title: {
+                display: true,
+                text: 'Evolución mensual de casos con MOTIVO relacionado a Vandalismo'
+            }
+        }
+    }
+});
   </script>
 {% endblock %}
 
