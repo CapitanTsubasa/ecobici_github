@@ -2,36 +2,128 @@
 
 {% block content %}
 
-<h1>Listado de usuarios</h1>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
 
-    <input type="text" id="searchInput" placeholder="Buscar por ID de ciclista..." onkeyup="filterTable()">
+<!-- GRAFICO POR SEXO || VER DESPUES
+<div style="display: flex; justify-content: space-around; flex-wrap: wrap;">
+    <div style="width: 30%;">
+        <h3>Distribución por Sexo</h3>
+        <canvas id="graficoSexo"></canvas>
+    <script>
+        const sexoData = {{ sexo_counts|safe }};
+        new Chart(document.getElementById('graficoSexo'), {
+            type: 'pie',
+            data: {
+        labels: Object.keys(sexoData),
+        datasets: [{
+            data: Object.values(sexoData),
+            backgroundColor: ['#36A2EB','#FF6384','#FFCE56']
+        }]
+    }
+});
+    </script>
+    </div>
+</div>
+-->
 
-    {{ tabla|safe }}
+<!-- COMENZANDO POWERBI -->
+
+<div style="display: flex; justify-content: space-around; flex-wrap: wrap;">
+    <div style="width: 30%;">
+        <h3>Viajes por Origen (Top 10)</h3>
+        <canvas id="graficoOrigen"></canvas>
 
     <script>
-        function filterTable() {
-            const input = document.getElementById("searchInput");
-            const filter = input.value.toUpperCase();
-            const table = document.querySelector("table");
-            const tr = table.getElementsByTagName("tr");
+    const viajesOrigen = {{ viajes_por_origen|safe }};
 
-            for (let i = 1; i < tr.length; i++) { // Empieza en 1 para saltar encabezado
-                const td = tr[i].getElementsByTagName("td")[0]; // Asume que ID_de_ciclista está en la primera columna
-                if (td) {
-                    const txtValue = td.textContent || td.innerText;
-                    tr[i].style.display = txtValue.toUpperCase().indexOf(filter) > -1 ? "" : "none";
+    new Chart(document.getElementById('graficoOrigen'), {
+        type: 'bar',
+        data: {
+            labels: Object.keys(viajesOrigen),
+            datasets: [{
+                label: "Cantidad de viajes",
+                data: Object.values(viajesOrigen),
+                backgroundColor: '#6670FF'
+            }]
+        },
+        options: {
+            indexAxis: 'y', // barras horizontales
+            responsive: true,
+            plugins: {
+                legend: { display: false },
+                title: { display: true, text: 'Viajes x Origen' },
+                datalabels: {
+                    anchor: 'end',
+                    align: 'right',
+                    color: '#000',
+                    font: {
+                        weight: 'bold'
+                    },
+                    formatter: function(value) {
+                        return value.toLocaleString(); // separador de miles
+                    }
                 }
             }
-        }
+        },
+        plugins: [ChartDataLabels]
+    });
     </script>
+    </div>
+
+    <div style="width: 30%;">
+        <h3>Viajes por Destino (Top 20)</h3>
+    <canvas id="graficoDestino"></canvas>
+
+    <script>
+    const viajesDestino = {{ viajes_por_destino|safe }};
+
+    new Chart(document.getElementById('graficoDestino'), {
+        type: 'bar',
+        data: {
+            labels: Object.keys(viajesDestino),
+            datasets: [{
+                label: "Cantidad de viajes",
+                data: Object.values(viajesDestino),
+                backgroundColor: '#6670FF'
+            }]
+        },
+        options: {
+            indexAxis: 'y', // barras horizontales
+            responsive: true,
+            plugins: {
+                legend: { display: false },
+                title: { display: true, text: 'Viajes x Destino' },
+                datalabels: {
+                    anchor: 'end',
+                    align: 'right',
+                    color: '#000',
+                    font: { weight: 'bold' },
+                    formatter: function(value) {
+                        return value.toLocaleString(); // separador de miles
+                    }
+                }
+            }
+        },
+        plugins: [ChartDataLabels]
+    });
+    </script>
+    </div>
+
+    <div style="width: 30%;">
+
+    </div>
+</div>
 
     
-<body>
-    <div class="container mt-4">
-        <h2>Usuarios desde Google Drive</h2>
-        <div>
-            {{ tabla|safe }}
-        </div>
+  
+<div class="container mt-4">
+    <h2>Usuarios desde Google Drive</h2>
+    <div>
+        {{ tabla|safe }}
     </div>
-</body>
+</div>
+
+
+
 {% endblock content %}

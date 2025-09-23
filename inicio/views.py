@@ -3,15 +3,17 @@ import os
 import json
 import pandas as pd
 import unicodedata
+import matplotlib.pyplot as plt
 
 from io import BytesIO
 from googleapiclient.discovery import build
 from google.oauth2 import service_account
 from googleapiclient.http import MediaIoBaseDownload
 from django.shortcuts import render
-
-from django.shortcuts import render
+from django.conf import settings
 from collections import Counter
+
+ 
 
 # Create your views here.
 def index(request):
@@ -93,7 +95,6 @@ def mostrar_usuarios(request):
     folder_id = '15VrRfhgGQdVeOpD2Q_BD2287WCFWif8d'
     target_file_name = 'Bicicletas_acumulado_procesado_2025.csv'
 
-    # Buscar el archivo
     query = f"name= '{target_file_name}' and '{folder_id}' in parents"
     results = drive_service.files().list(q=query, fields="files(id, name)").execute()
     files = results.get('files', [])
@@ -102,8 +103,6 @@ def mostrar_usuarios(request):
         return render(request, "error.html", {"mensaje": "Archivo no encontrado en Drive"})
 
     file_id = files[0]['id']
-
-    # Descargar el archivo
     request_drive = drive_service.files().get_media(fileId=file_id)
     file_stream = BytesIO()
     downloader = MediaIoBaseDownload(file_stream, request_drive)
@@ -116,10 +115,47 @@ def mostrar_usuarios(request):
     # Cargar en pandas
     usuarios = pd.read_csv(file_stream, encoding="latin-1", sep="\t")
 
-    # Convertir a tabla HTML
+    # ================================
+    # 📊 Conteo por sexo
+    # ================================
+    sexo_counts = usuarios['Sexo'].value_counts().to_dict()
+
+    # ================================
+    # 📊 Conteo por mes
+    # ================================
+    usuarios['Fecha_Inicio'] = pd.to_datetime(usuarios['Fecha_Inicio'], errors='coerce')
+    usuarios['Mes'] = usuarios['Fecha_Inicio'].dt.to_period('M')
+    viajes_por_mes = usuarios['Mes'].value_counts().sort_index().to_dict()
+
+    # ================================
+    # Tabla de preview
+    # ================================
     tabla_html = usuarios.head(50).to_html(classes="table table-striped", index=False)
 
-    return render(request, "inicio/usuarios.html", {"tabla": tabla_html})
+    # ================================
+    # 📊 Gráfico 3: Viajes por estación de origen
+    # ================================
+    viajes_por_origen = usuarios['Nombre_Inicio_Viaje'].value_counts().head(10)  # Top 10
+
+    # Pasar a dict para usar en Chart.js
+    viajes_por_origen_dict = viajes_por_origen.to_dict()
+
+    # ================================
+    # 📊 Gráfico 4: Viajes por destino
+    # ================================
+    viajes_por_destino = usuarios['Nombre_Final_Viaje'].value_counts().head(10)
+
+    # Pasar a dict para usar en Chart.js
+    viajes_por_destino_dict = viajes_por_destino.to_dict()
+
+    return render(request, "inicio/usuarios.html", {
+        "tabla": tabla_html,
+        "sexo_counts": sexo_counts,
+        "viajes_mes": viajes_por_mes,
+        "viajes_por_origen": viajes_por_origen_dict,
+        "viajes_por_destino": viajes_por_destino_dict
+    })
+
 
 # GRAFICO INTERACTIVO DE PRODUCTOS
 def grafico_productos_interactivo(request):
