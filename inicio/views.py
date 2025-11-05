@@ -1,7 +1,6 @@
 import plotly.express as px
 import json
 import pandas as pd
-import pickle, time
 import os
 import unicodedata
 import matplotlib.pyplot as plt
@@ -14,11 +13,8 @@ from django.shortcuts import render
 from django.conf import settings
 from collections import Counter
 
-import pandas as pd
-import pickle
-import os
 
-CACHE_PATH = "cache_usuarios.pkl"
+
 
 
 # Create your views here.
@@ -78,32 +74,7 @@ print("Columnas reales del CSV:")
 
 ####################################################################################################################
 ############################################   AGREGANDO CACHE   #############################################
-####################################################################################################################
-
-def get_usuarios(file_stream, target_file_name):
-    
-    """
-    Devuelve el DataFrame de usuarios.
-    Si existe un archivo cache (pkl) reciente, lo usa.
-    Si no, lee el CSV descargado, guarda el cache y lo devuelve.
-    """
-    # Si el cache existe y fue creado hace menos de 1 hora → usarlo
-    if os.path.exists(CACHE_PATH) and (time.time() - os.path.getmtime(CACHE_PATH) < 3600):
-        with open(CACHE_PATH, "rb") as f:
-            return pickle.load(f)
-    else:
-        # Guardar temporalmente el archivo descargado
-        temp_path = os.path.join(os.getcwd(), target_file_name)
-        with open(temp_path, "wb") as f:
-            f.write(file_stream.read())
-
-        # Cargar CSV y guardar en cache
-        df = pd.read_csv(temp_path, encoding="latin-1", sep="\t")
-        with open(CACHE_PATH, "wb") as f:
-            pickle.dump(df, f)
-
-        return df
-    
+####################################################################################################################    
 
 ####################################################################################################################
 ############################################   PROBANDO EL PROCESADO   #############################################
