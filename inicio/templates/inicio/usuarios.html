@@ -1,5 +1,5 @@
 {% extends 'inicio/index.html' %}
-
+{% load humanize %}
 {% block content %}
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -28,6 +28,62 @@
 -->
 
 <!-- COMENZANDO POWERBI -->
+
+<div style="background-color:#002b5c; color:white; border-radius:12px; padding:15px; text-align:center; width:200px;">
+    <p style="font-style:italic;">Acumulación Anual</p>
+    <h1 style="font-size:2em;">{{ viajes_acumulados }}</h1>
+</div>
+
+
+<div style="width: 60%; margin: 0 auto;">
+  <h3 style="text-align:center;">Viajes por Mes</h3>
+  <canvas id="graficoMeses"></canvas>
+</div>
+
+<script>
+const viajesPorMes = {{ viajes_por_mes|safe }};
+
+new Chart(document.getElementById('graficoMeses'), {
+  type: 'bar',
+  data: {
+    labels: Object.keys(viajesPorMes),  // nombres de meses
+    datasets: [{
+      label: 'Viajes',
+      data: Object.values(viajesPorMes),
+      backgroundColor: '#0077b6',
+      borderRadius: 6,
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { display: false },
+      datalabels: {
+        anchor: 'end',
+        align: 'top',
+        color: '#000',
+        font: { weight: 'bold' },
+        formatter: (value) => value.toLocaleString()
+      },
+      title: {
+        display: true,
+        text: 'Evolución de Viajes Mensuales',
+        font: { size: 16 }
+      }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: {
+          callback: (value) => value.toLocaleString()
+        }
+      }
+    }
+  },
+  plugins: [ChartDataLabels]
+});
+</script>
+
 
 <div style="display: flex; justify-content: space-around; flex-wrap: wrap;">
     <div style="width: 30%;">
@@ -71,6 +127,7 @@
     </script>
     </div>
 
+
     <div style="width: 30%;">
         <h3>Viajes por Destino (Top 20)</h3>
     <canvas id="graficoDestino"></canvas>
@@ -111,17 +168,30 @@
     </div>
 
     <div style="width: 30%;">
+        <h3>Viajes por Mes</h3>
+    <canvas id="viajesPorMesChart"></canvas>
 
-    </div>
-</div>
+    <script>
+    const ctx = document.getElementById('viajesPorMesChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: {{ meses_labels|safe }},
+            datasets: [{
+                label: 'Viajes por Mes',
+                data: {{ viajes_values|safe }},
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
+    </div> 
+    </script>
 
-    
-  
-<div class="container mt-4">
-    <h2>Usuarios desde Google Drive</h2>
-    <div>
-        {{ tabla|safe }}
-    </div>
 </div>
 
 

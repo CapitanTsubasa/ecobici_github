@@ -1,7 +1,8 @@
 import plotly.express as px
-import os
 import json
 import pandas as pd
+import pickle, time
+import os
 import unicodedata
 import matplotlib.pyplot as plt
 
@@ -13,7 +14,12 @@ from django.shortcuts import render
 from django.conf import settings
 from collections import Counter
 
- 
+import pandas as pd
+import pickle
+import os
+
+CACHE_PATH = "cache_usuarios.pkl"
+
 
 # Create your views here.
 def index(request):
@@ -70,9 +76,40 @@ def viajes(request):
 
 print("Columnas reales del CSV:")
 
+####################################################################################################################
+############################################   AGREGANDO CACHE   #############################################
+####################################################################################################################
+
+def get_usuarios(file_stream, target_file_name):
+    
+    """
+    Devuelve el DataFrame de usuarios.
+    Si existe un archivo cache (pkl) reciente, lo usa.
+    Si no, lee el CSV descargado, guarda el cache y lo devuelve.
+    """
+    # Si el cache existe y fue creado hace menos de 1 hora → usarlo
+    if os.path.exists(CACHE_PATH) and (time.time() - os.path.getmtime(CACHE_PATH) < 3600):
+        with open(CACHE_PATH, "rb") as f:
+            return pickle.load(f)
+    else:
+        # Guardar temporalmente el archivo descargado
+        temp_path = os.path.join(os.getcwd(), target_file_name)
+        with open(temp_path, "wb") as f:
+            f.write(file_stream.read())
+
+        # Cargar CSV y guardar en cache
+        df = pd.read_csv(temp_path, encoding="latin-1", sep="\t")
+        with open(CACHE_PATH, "wb") as f:
+            pickle.dump(df, f)
+
+        return df
+    
+
+####################################################################################################################
+############################################   PROBANDO EL PROCESADO   #############################################
+####################################################################################################################
 
 
-#PROBANDO EL PROCESADO
 def mostrar_usuarios(request):
     scopes = ['https://www.googleapis.com/auth/drive']
 
@@ -113,7 +150,9 @@ def mostrar_usuarios(request):
     file_stream.seek(0)
 
     # Cargar en pandas
-    usuarios = pd.read_csv(file_stream, encoding="latin-1", sep="\t")
+    ############################usuarios = pd.read_csv(file_stream, encoding="latin-1", sep="\t")#############################
+    usuarios = get_usuarios(file_stream, target_file_name)
+
 
     # ================================
     # 📊 Conteo por sexo
@@ -126,6 +165,17 @@ def mostrar_usuarios(request):
     usuarios['Fecha_Inicio'] = pd.to_datetime(usuarios['Fecha_Inicio'], errors='coerce')
     usuarios['Mes'] = usuarios['Fecha_Inicio'].dt.to_period('M')
     viajes_por_mes = usuarios['Mes'].value_counts().sort_index().to_dict()
+
+    # Fecha actual AGREGANDO CONTEO MENSUAL Y GRAFICO
+    fecha_actual = pd.Timestamp.now()
+    mes_actual = fecha_actual.to_period('M')
+
+    # Cantidad de viajes del mes actual
+    viajes_mes_actual = usuarios[usuarios['Mes'] == mes_actual].shape[0]
+
+    # Porcentaje respecto al total anual
+    total_anual = usuarios.shape[0]
+    porcentaje_mes = (viajes_mes_actual / total_anual) * 100 if total_anual > 0 else 0
 
     # ================================
     # Tabla de preview
@@ -145,16 +195,43 @@ def mostrar_usuarios(request):
     # ================================
     viajes_por_destino = usuarios['Nombre_Final_Viaje'].value_counts().head(10)
 
+    # ================================
+    # 📊 Gráfico 45: Viajes por destino
+    # ================================
+
     # Pasar a dict para usar en Chart.js
     viajes_por_destino_dict = viajes_por_destino.to_dict()
+
+    # Asegurar orden cronológico
+    viajes_por_mes_ordenado = dict(sorted(viajes_por_mes.items()))
+
+    meses_labels = [str(mes) for mes in viajes_por_mes_ordenado.keys()]
+    viajes_values = list(viajes_por_mes_ordenado.values())
+
+    # Guardar temporalmente el archivo descargado
+    #temp_path = os.path.join(os.getcwd(), target_file_name)
+    #with open(temp_path, "wb") as f:
+    #    f.write(file_stream.read())
+
+    temp_path = os.path.join(os.getcwd(), target_file_name)
+    with open(temp_path, "wb") as f:
+        f.write(file_stream.read())
 
     return render(request, "inicio/usuarios.html", {
         "tabla": tabla_html,
         "sexo_counts": sexo_counts,
         "viajes_mes": viajes_por_mes,
         "viajes_por_origen": viajes_por_origen_dict,
-        "viajes_por_destino": viajes_por_destino_dict
+        "viajes_por_destino": viajes_por_destino_dict,
+        "viajes_acumulados": contar_viajes(usuarios),
+        "viajes_mes_actual": viajes_mes_actual,
+        "porcentaje_mes": porcentaje_mes,
+        "meses_labels": meses_labels,
+        "viajes_values": viajes_values
     })
+
+
+
 
 
 # GRAFICO INTERACTIVO DE PRODUCTOS
@@ -288,6 +365,11 @@ def grafico_productos(request):
         "values": json.dumps(values)
     })
 
+
+
+
+
+
 # MOTIVOS.HTML - DESAPARECIDAS.CSV   
 
 def dashboard(request):
@@ -353,4 +435,32 @@ def dashboard(request):
     }
     return render(request, 'inicio/motivos.html', context)
 
+
+
+
+
 # FIN MOTIVOS.HTML - DESAPARECIDAS.CSV
+
+
+def contar_viajes(df):
+    """
+    Cuenta la cantidad de viajes en el DataFrame y devuelve
+    un string formateado (ej: '2,2 M' o '125.430').
+    """
+    try:
+        total_viajes = len(df)
+
+        if total_viajes >= 1_000_000:
+            # 1.2 M -> usar coma decimal como en tus ejemplos: "2,2 M"
+            display_value = f"{total_viajes / 1_000_000:.1f} M".replace(".", ",")
+        elif total_viajes >= 1_000:
+            # 125430 -> "125.430"
+            display_value = f"{total_viajes:,}".replace(",", ".")
+        else:
+            display_value = str(total_viajes)
+
+        return display_value
+    except Exception as e:
+        # Opcional: loguear o imprimir para debug
+        print("Error en contar_viajes:", e)
+        return "Error"
