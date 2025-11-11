@@ -29,60 +29,56 @@
 
 <!-- COMENZANDO POWERBI -->
 
-<div style="background-color:#002b5c; color:white; border-radius:12px; padding:15px; text-align:center; width:200px;">
-    <p style="font-style:italic;">Acumulación Anual</p>
-    <h1 style="font-size:2em;">{{ viajes_acumulados }}</h1>
+<div style="display: flex; justify-content: space-around; flex-wrap: wrap;">
+    <div class="card text-center" style="background-color:#002855; color:white; border-radius:20px; padding:15px; width:220px;">
+        <p style="font-style:italic;">Acumulación Anual</p>
+        <h1 style="font-size:2em;">{{ viajes_acumulados }}</h1>
+    </div>
+
+
+    <div class="card text-center" style="background-color:#002855; color:white; border-radius:20px; padding:15px; width:220px;">
+        <h6>Viajes del Mes</h6>
+        <h2>{{ viajes_mes_actual|floatformat:0|intcomma }}</h2>
+        <p>{{ porcentaje_mes|floatformat:1 }}%</p>
+    </div>
+
+
+
+    <!--<div style="display:flex; justify-content:center; gap:20px; margin-top:20px;">-->
+         <!-- Promedio Lunes a Viernes -->
+    <div class="card text-center" style="background-color:#002855; color:white; border-radius:20px; padding:15px; width:220px;">
+            <h6>Promedio Lunes a Viernes</h6>
+            <h2>{{ promedio_lunes_viernes|intcomma }}</h2>
+        {% if variacion_lv >= 0 %}
+            <p style="color:lightgreen;">&#9650; {{ variacion_lv|floatformat:1 }}%</p>
+        {% else %}
+            <p style="color:lightcoral;">&#9660; {{ variacion_lv|floatformat:1 }}%</p>
+        {% endif %}
+    </div>
+
+    <!-- Promedio Fin de Semana -->
+    <div class="card text-center" style="background-color:#002855; color:white; border-radius:20px; padding:15px; width:220px;">
+        <h6>Promedio Fin de Semana</h6>
+        <h2>{{ promedio_fin_semana|intcomma }}</h2>
+    {% if variacion_fs >= 0 %}
+        <p style="color:lightgreen;">&#9650; {{ variacion_fs|floatformat:1 }}%</p>
+    {% else %}
+        <p style="color:lightcoral;">&#9660; {{ variacion_fs|floatformat:1 }}%</p>
+    {% endif %}
+    </div>
 </div>
 
+<div class="d-flex flex-wrap justify-content-center gap-3 mt-4">
+  <div class="card text-center" style="background-color:#002855; color:white; border-radius:20px; padding:15px; width:220px;">
+    <h6>Bicicletas Usadas ({{ fecha_actual|date:"F" }})</h6>
+    <h2>{{ bicicletas_usadas|intcomma }}</h2>
+  </div>
 
-<div style="width: 60%; margin: 0 auto;">
-  <h3 style="text-align:center;">Viajes por Mes</h3>
-  <canvas id="graficoMeses"></canvas>
+  <div class="card text-center" style="background-color:#002855; color:white; border-radius:20px; padding:15px; width:220px;">
+    <h6>Promedio de Viajes por Bicicleta</h6>
+    <h2>{{ promedio_viajes_por_bici|floatformat:1 }}</h2>
+  </div>
 </div>
-
-<script>
-const viajesPorMes = {{ viajes_por_mes|safe }};
-
-new Chart(document.getElementById('graficoMeses'), {
-  type: 'bar',
-  data: {
-    labels: Object.keys(viajesPorMes),  // nombres de meses
-    datasets: [{
-      label: 'Viajes',
-      data: Object.values(viajesPorMes),
-      backgroundColor: '#0077b6',
-      borderRadius: 6,
-    }]
-  },
-  options: {
-    responsive: true,
-    plugins: {
-      legend: { display: false },
-      datalabels: {
-        anchor: 'end',
-        align: 'top',
-        color: '#000',
-        font: { weight: 'bold' },
-        formatter: (value) => value.toLocaleString()
-      },
-      title: {
-        display: true,
-        text: 'Evolución de Viajes Mensuales',
-        font: { size: 16 }
-      }
-    },
-    scales: {
-      y: {
-        beginAtZero: true,
-        ticks: {
-          callback: (value) => value.toLocaleString()
-        }
-      }
-    }
-  },
-  plugins: [ChartDataLabels]
-});
-</script>
 
 
 <div style="display: flex; justify-content: space-around; flex-wrap: wrap;">
@@ -107,14 +103,17 @@ new Chart(document.getElementById('graficoMeses'), {
             indexAxis: 'y', // barras horizontales
             responsive: true,
             plugins: {
-                legend: { display: false },
-                title: { display: true, text: 'Viajes x Origen' },
+                legend: { 
+                    display: false, 
+                },
+                title: { display: true, text: 'Viajes por Origen' },
                 datalabels: {
                     anchor: 'end',
                     align: 'right',
                     color: '#000',
                     font: {
-                        weight: 'bold'
+                        weight: 'bold',
+                        size: "9",
                     },
                     formatter: function(value) {
                         return value.toLocaleString(); // separador de miles
@@ -130,7 +129,7 @@ new Chart(document.getElementById('graficoMeses'), {
 
     <div style="width: 30%;">
         <h3>Viajes por Destino (Top 20)</h3>
-    <canvas id="graficoDestino"></canvas>
+        <canvas id="graficoDestino"></canvas>
 
     <script>
     const viajesDestino = {{ viajes_por_destino|safe }};
@@ -166,33 +165,31 @@ new Chart(document.getElementById('graficoMeses'), {
     });
     </script>
     </div>
-
-    <div style="width: 30%;">
-        <h3>Viajes por Mes</h3>
-    <canvas id="viajesPorMesChart"></canvas>
-
-    <script>
-    const ctx = document.getElementById('viajesPorMesChart').getContext('2d');
-    new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: {{ meses_labels|safe }},
-            datasets: [{
-                label: 'Viajes por Mes',
-                data: {{ viajes_values|safe }},
-                borderWidth: 1
-            }]
-        },
-        options: {
-            scales: {
-                y: { beginAtZero: true }
-            }
-        }
-    });
-    </div> 
-    </script>
-
 </div>
+
+
+<canvas id="viajesPorMes" height="120"></canvas>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const ctx = document.getElementById('viajesPorMes');
+new Chart(ctx, {
+  type: 'bar',
+  data: {
+    labels: {{ meses_labels|safe }},
+    datasets: [{
+      label: 'Viajes por mes',
+      data: {{ viajes_values|safe }},
+      backgroundColor: '#4b9cd3'
+    }]
+  },
+  options: {
+    plugins: { legend: { display: false } },
+    scales: {
+      y: { beginAtZero: true }
+    }
+  }
+});
+</script>
 
 
 

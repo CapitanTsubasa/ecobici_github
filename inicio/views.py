@@ -72,12 +72,13 @@ def viajes(request):
 
 print("Columnas reales del CSV:")
 
+"""
 ####################################################################################################################
-############################################   AGREGANDO CACHE   #############################################
+############################################   AGREGANDO CACHE   ###################################################
 ####################################################################################################################    
-
+"""
 ####################################################################################################################
-############################################   PROBANDO EL PROCESADO   #############################################
+####################################   PROBANDO EL PROCESADO - MOSTRAR_USUARIOS   ##################################
 ####################################################################################################################
 
 
@@ -121,9 +122,41 @@ def mostrar_usuarios(request):
     file_stream.seek(0)
 
     # Cargar en pandas
-    ############################usuarios = pd.read_csv(file_stream, encoding="latin-1", sep="\t")#############################
-    usuarios = get_usuarios(file_stream, target_file_name)
+    usuarios = pd.read_csv(file_stream, encoding="latin-1", sep="\t")
 
+    # ================================
+    # 📅 Manejo de fechas
+    # ================================
+    usuarios['Fecha_Inicio'] = pd.to_datetime(usuarios['Fecha_Inicio'], errors='coerce')
+    usuarios = usuarios.dropna(subset=['Fecha_Inicio'])
+    usuarios['Mes'] = usuarios['Fecha_Inicio'].dt.to_period('M')
+
+    fecha_actual = pd.Timestamp.now()
+    mes_actual = fecha_actual.to_period('M')
+    anio_actual = fecha_actual.year
+
+    # ================================
+    # 📊 Totales y acumulaciones
+    # ================================
+    total_anual = usuarios[usuarios['Fecha_Inicio'].dt.year == anio_actual].shape[0]
+    viajes_mes_actual = usuarios[usuarios['Mes'] == mes_actual].shape[0]
+    porcentaje_mes = (viajes_mes_actual / total_anual * 100) if total_anual > 0 else 0
+
+    # ================================
+    # 📊 Viajes por mes (para gráfico)
+    # ================================
+    viajes_por_mes = (
+        usuarios[usuarios['Fecha_Inicio'].dt.year == anio_actual]
+        .groupby(usuarios['Fecha_Inicio'].dt.month)
+        .size()
+        .reset_index(name='viajes')
+    )
+    viajes_por_mes['mes_nombre'] = viajes_por_mes['Fecha_Inicio'].apply(
+        lambda x: pd.Timestamp(2025, x, 1).strftime('%b')
+    )
+
+    meses_labels = viajes_por_mes['mes_nombre'].tolist()
+    viajes_values = viajes_por_mes['viajes'].tolist()
 
     # ================================
     # 📊 Conteo por sexo
@@ -131,78 +164,124 @@ def mostrar_usuarios(request):
     sexo_counts = usuarios['Sexo'].value_counts().to_dict()
 
     # ================================
-    # 📊 Conteo por mes
+    # 📊 Viajes por estación de origen (Top 10)
     # ================================
-    usuarios['Fecha_Inicio'] = pd.to_datetime(usuarios['Fecha_Inicio'], errors='coerce')
-    usuarios['Mes'] = usuarios['Fecha_Inicio'].dt.to_period('M')
-    viajes_por_mes = usuarios['Mes'].value_counts().sort_index().to_dict()
-
-    # Fecha actual AGREGANDO CONTEO MENSUAL Y GRAFICO
-    fecha_actual = pd.Timestamp.now()
-    mes_actual = fecha_actual.to_period('M')
-
-    # Cantidad de viajes del mes actual
-    viajes_mes_actual = usuarios[usuarios['Mes'] == mes_actual].shape[0]
-
-    # Porcentaje respecto al total anual
-    total_anual = usuarios.shape[0]
-    porcentaje_mes = (viajes_mes_actual / total_anual) * 100 if total_anual > 0 else 0
+    viajes_por_origen = usuarios['Nombre_Inicio_Viaje'].value_counts().head(10)
+    viajes_por_origen_dict = viajes_por_origen.to_dict()
 
     # ================================
-    # Tabla de preview
+    # 📊 Viajes por destino (Top 10)
+    # ================================
+    viajes_por_destino = usuarios['Nombre_Final_Viaje'].value_counts().head(10)
+    viajes_por_destino_dict = viajes_por_destino.to_dict()
+
+    # ================================
+    # Tabla preview
     # ================================
     tabla_html = usuarios.head(50).to_html(classes="table table-striped", index=False)
 
     # ================================
-    # 📊 Gráfico 3: Viajes por estación de origen
-    # ================================
-    viajes_por_origen = usuarios['Nombre_Inicio_Viaje'].value_counts().head(10)  # Top 10
-
-    # Pasar a dict para usar en Chart.js
-    viajes_por_origen_dict = viajes_por_origen.to_dict()
-
-    # ================================
-    # 📊 Gráfico 4: Viajes por destino
-    # ================================
-    viajes_por_destino = usuarios['Nombre_Final_Viaje'].value_counts().head(10)
-
-    # ================================
-    # 📊 Gráfico 45: Viajes por destino
+    # 📊 Promedio de viajes por tipo de día (mes actual)
     # ================================
 
-    # Pasar a dict para usar en Chart.js
-    viajes_por_destino_dict = viajes_por_destino.to_dict()
+    # --- Asegurarse que Fecha_Inicio sea datetime ---
+    usuarios['Fecha_Inicio'] = pd.to_datetime(usuarios['Fecha_Inicio'], errors='coerce')
 
-    # Asegurar orden cronológico
-    viajes_por_mes_ordenado = dict(sorted(viajes_por_mes.items()))
+    # --- Filtrar mes actual ---
+    mes_actual = pd.Timestamp.now().month
+    anio_actual = pd.Timestamp.now().year
 
-    meses_labels = [str(mes) for mes in viajes_por_mes_ordenado.keys()]
-    viajes_values = list(viajes_por_mes_ordenado.values())
+    usuarios_mes_actual = usuarios[
+        (usuarios['Fecha_Inicio'].dt.month == mes_actual) &
+        (usuarios['Fecha_Inicio'].dt.year == anio_actual)
+    ]
 
-    # Guardar temporalmente el archivo descargado
-    #temp_path = os.path.join(os.getcwd(), target_file_name)
-    #with open(temp_path, "wb") as f:
-    #    f.write(file_stream.read())
+    # --- Día de la semana (0=Lunes, 6=Domingo) ---
+    usuarios_mes_actual['dia_semana'] = usuarios_mes_actual['Fecha_Inicio'].dt.dayofweek
+    usuarios_mes_actual['tipo_dia'] = usuarios_mes_actual['dia_semana'].apply(lambda x: 'Fin de semana' if x >= 5 else 'Lunes a Viernes')
 
-    temp_path = os.path.join(os.getcwd(), target_file_name)
-    with open(temp_path, "wb") as f:
-        f.write(file_stream.read())
+    # --- Contar viajes por día ---
+    viajes_por_dia = usuarios_mes_actual.groupby(usuarios_mes_actual['Fecha_Inicio'].dt.date).size().reset_index(name='viajes')
 
-    return render(request, "inicio/usuarios.html", {
+    # --- Renombrar y preparar ---
+    viajes_por_dia.rename(columns={'Fecha_Inicio': 'fecha'}, inplace=True)
+    viajes_por_dia['fecha'] = pd.to_datetime(viajes_por_dia['fecha'], errors='coerce')
+    viajes_por_dia['dia_semana'] = viajes_por_dia['fecha'].dt.dayofweek
+    viajes_por_dia['tipo_dia'] = viajes_por_dia['dia_semana'].apply(lambda x: 'Fin de semana' if x >= 5 else 'Lunes a Viernes')
+
+    # --- Promedios ---
+    if not viajes_por_dia.empty:
+        promedio_lunes_viernes = viajes_por_dia[viajes_por_dia['tipo_dia'] == 'Lunes a Viernes']['viajes'].mean()
+        promedio_fin_semana = viajes_por_dia[viajes_por_dia['tipo_dia'] == 'Fin de semana']['viajes'].mean()
+    else:
+        promedio_lunes_viernes = promedio_fin_semana = 0
+
+    promedio_lunes_viernes = 0 if pd.isna(promedio_lunes_viernes) else promedio_lunes_viernes
+    promedio_fin_semana = 0 if pd.isna(promedio_fin_semana) else promedio_fin_semana
+
+    # --- Variaciones (de ejemplo) ---
+    variacion_lv = 0.037
+    variacion_fs = -0.015
+
+    # ================================
+    # 🚲 Análisis de uso de bicicletas (mes actual)
+    # ================================
+    # Usamos usuarios_mes_actual (ya filtrado)
+    if not usuarios_mes_actual.empty:
+        # 1️⃣ Bicicletas únicas usadas
+        bicicletas_usadas = usuarios_mes_actual['ID_Bicicleta'].nunique()
+
+        # 2️⃣ Total de viajes del mes
+        viajes_mes = len(usuarios_mes_actual)
+
+        # 3️⃣ Promedio de viajes por bicicleta
+        promedio_viajes_por_bici = viajes_mes / bicicletas_usadas if bicicletas_usadas > 0 else 0
+
+        # 4️⃣ Promedios de lunes a viernes y fin de semana (ya calculados antes)
+    else:
+        bicicletas_usadas = 0
+        viajes_mes = 0
+        promedio_viajes_por_bici = 0
+
+    # ================================
+    # 📦 Render Context
+    # ================================
+    render_context = {
         "tabla": tabla_html,
         "sexo_counts": sexo_counts,
-        "viajes_mes": viajes_por_mes,
         "viajes_por_origen": viajes_por_origen_dict,
         "viajes_por_destino": viajes_por_destino_dict,
-        "viajes_acumulados": contar_viajes(usuarios),
+        "viajes_acumulados": total_anual,
         "viajes_mes_actual": viajes_mes_actual,
         "porcentaje_mes": porcentaje_mes,
         "meses_labels": meses_labels,
-        "viajes_values": viajes_values
-    })
+        "viajes_values": viajes_values,
+        "promedio_lunes_viernes": round(promedio_lunes_viernes, 0),
+        "promedio_fin_semana": round(promedio_fin_semana, 0),
+        "variacion_lv": variacion_lv,
+        "variacion_fs": variacion_fs,
+        # 🚲 Nuevos datos de análisis
+        "bicicletas_usadas": bicicletas_usadas,
+        "viajes_mes": viajes_mes,
+        "promedio_viajes_por_bici": round(promedio_viajes_por_bici, 1),
+    }
+
+    return render(request, "inicio/usuarios.html", render_context)
+
+
+####################################################################################################################
+####################################   FIN DE - MOSTRAR_USUARIOS   #################################################
+####################################################################################################################
+
+####################################################################################################################
+####################################   VIAJES MENSUALES - GRAFICOS  ################################################
+####################################################################################################################
 
 
 
+####################################################################################################################
+####################################  FIN DE VIAJES MENSUALES - GRAFICOS  ##########################################
+####################################################################################################################
 
 
 # GRAFICO INTERACTIVO DE PRODUCTOS
