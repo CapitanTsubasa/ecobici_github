@@ -4,13 +4,18 @@ import pandas as pd
 import os
 import unicodedata
 import matplotlib.pyplot as plt
+import calendar
 
 from io import BytesIO
+
 from googleapiclient.discovery import build
 from google.oauth2 import service_account
 from googleapiclient.http import MediaIoBaseDownload
+
 from django.shortcuts import render
 from django.conf import settings
+from django.http import HttpResponse
+
 from collections import Counter
 
 
@@ -229,7 +234,7 @@ def mostrar_usuarios(request):
     # Usamos usuarios_mes_actual (ya filtrado)
     if not usuarios_mes_actual.empty:
         # 1️⃣ Bicicletas únicas usadas
-        bicicletas_usadas = usuarios_mes_actual['ID_Bicicleta'].nunique()
+        bicicletas_usadas = usuarios_mes_actual['Msnbc_de_bicicleta'].nunique()
 
         # 2️⃣ Total de viajes del mes
         viajes_mes = len(usuarios_mes_actual)
@@ -242,6 +247,33 @@ def mostrar_usuarios(request):
         bicicletas_usadas = 0
         viajes_mes = 0
         promedio_viajes_por_bici = 0
+
+    # ============================================================
+    # 🚲 Gráfico de bicicletas únicas utilizadas por mes
+    # ============================================================
+    usuarios['Mes'] = usuarios['Fecha_Inicio'].dt.month
+    bicicletas_por_mes = usuarios.groupby('Mes')['Msnbc_de_bicicleta'].nunique().reset_index()
+    bicicletas_por_mes['Mes'] = bicicletas_por_mes['Mes'].apply(lambda x: calendar.month_abbr[x])
+
+    fig = px.bar(
+        bicicletas_por_mes,
+        x='Mes',
+        y='Msnbc_de_bicicleta',
+        title="🚲 Bicicletas únicas utilizadas por mes",
+        color_discrete_sequence=['#1f77b4']
+    )
+    grafico_bicis_html = fig.to_html(full_html=False)
+
+    # --- Otras secciones que ya tengas ---
+    # grafico_viajes_html = ...
+    # grafico_dias_html = ...
+
+    # --- Renderizado final ---
+    return render(request, "usuarios.html", {
+        "grafico_bicis_html": grafico_bicis_html,
+        # otros gráficos que ya pasás:
+        # "grafico_viajes_html": grafico_viajes_html,
+    })
 
     # ================================
     # 📦 Render Context
@@ -264,6 +296,7 @@ def mostrar_usuarios(request):
         "bicicletas_usadas": bicicletas_usadas,
         "viajes_mes": viajes_mes,
         "promedio_viajes_por_bici": round(promedio_viajes_por_bici, 1),
+        "tabla_ultimo_uso": tabla_ultimo_uso,
     }
 
     return render(request, "inicio/usuarios.html", render_context)
@@ -417,37 +450,56 @@ def grafico_productos(request):
 
 
 
+####################################################################################################################
+####################################   # MOTIVOS.HTML - DESAPARECIDAS.CSV    ##################################
+####################################################################################################################
 
 
-
-# MOTIVOS.HTML - DESAPARECIDAS.CSV   
+  
 
 def dashboard(request):
-    ruta = r'C:\Users\20349069890\ecobici_github\PP_DESAPARECIDAS.csv'
-    df = pd.read_csv(ruta, sep=';', encoding='latin1')
 
-    # --- Gráfico 1: Motivos ---
+    # ======== LEER DATOS DESDE GOOGLE SHEETS =========
+    key_path = r'c:\Users\20349069890\ecobici_github\client.json'
+    scopes = ['https://www.googleapis.com/auth/spreadsheets.readonly']
+    credentials = service_account.Credentials.from_service_account_file(key_path, scopes=scopes)
+
+    sheets_service = build('sheets', 'v4', credentials=credentials)
+
+    id_sheet = '1ZgtDX-VWm3jDiGH4NvpaWwJQIlonH7lHGyLFadRqhiU'
+    range_name = 'BICICLETAS!A:AP'  # Nombre real de la hoja
+
+    result = sheets_service.spreadsheets().values().get(
+        spreadsheetId=id_sheet,
+        range=range_name
+    ).execute()
+
+    values = result.get('values', [])
+    if not values:
+        return HttpResponse("No hay datos en el Google Sheet")
+
+    df = pd.DataFrame(values[1:], columns=values[0])
+
+    # ================= GRÁFICO 1: MOTIVOS =================
     conteo_motivos = df['MOTIVO'].value_counts().reset_index()
     conteo_motivos.columns = ['motivo', 'cantidad']
+    conteo_motivos = df['MOTIVO'].value_counts().to_dict()
 
-    # --- Gráfico 2: Casos por Mes ---
+    # ================= GRÁFICO 2: CASOS POR MES =================
     df['FECHA DE VIAJE'] = pd.to_datetime(df['FECHA DE VIAJE'], errors='coerce', dayfirst=True)
     conteo_mes = df.groupby(df['FECHA DE VIAJE'].dt.to_period('M')).size().reset_index(name='cantidad')
     conteo_mes['mes'] = conteo_mes['FECHA DE VIAJE'].astype(str)
 
-    # --- Gráfico 3: Casos por Día de Semana ---
+    # ================= GRÁFICO 3: DÍA DE SEMANA =================
     df['DIA_SEMANA'] = df['FECHA DE VIAJE'].dt.day_name()
     conteo_dia = df['DIA_SEMANA'].value_counts().reset_index()
     conteo_dia.columns = ['dia', 'cantidad']
 
-    # --- Grafico Aseguramos mayúsculas y limpiamos espacios ---
+    # ======== FILTRAR MOTIVO VANDALISMO =========
     df['MOTIVO'] = df['MOTIVO'].astype(str).str.upper().str.strip()
-    df['FECHA DE VIAJE'] = pd.to_datetime(df['FECHA DE VIAJE'], errors='coerce')
 
-    # Filtramos todos los que contengan VANDALISMO, sin importar lo que siga
     df_vandalismo = df[df['MOTIVO'].str.contains(r'\bVANDALISMO', na=False, regex=True)]
 
-    # Agrupamos por mes
     conteo_vandalismo = (
         df_vandalismo.groupby(df_vandalismo['FECHA DE VIAJE'].dt.to_period('M'))
         .size()
@@ -455,34 +507,38 @@ def dashboard(request):
     )
     conteo_vandalismo['mes'] = conteo_vandalismo['FECHA DE VIAJE'].astype(str)
 
-    context = {
-        # otros datos...
-        'meses_vandalismo': list(conteo_vandalismo['mes']),
-        'cant_vandalismo': list(conteo_vandalismo['cantidad']),
-    }
-    print(df_vandalismo['MOTIVO'].unique())
-    print(len(df_vandalismo))
-
-    # --- Contador de casos "A LA ESPERA" ---
+    # ======== CONTADORES =========
     casos_espera = df[df['ESTADO ACTUALIZADO'] == 'A LA ESPERA'].shape[0]
     casos_robada = df[df['ESTADO ACTUALIZADO'].isin(['ROBADA', 'ROBADA - RECUPERADA'])].shape[0]
     casos_robada_recuperada = df[df['ESTADO ACTUALIZADO'] == 'ROBADA - RECUPERADA'].shape[0]
 
+    # ======== AGREGAR CALENDARIO =========
+    df['FECHA DE VIAJE'] = pd.to_datetime(df['FECHA DE VIAJE'], errors='coerce', dayfirst=True)
+    df['MES'] = df['FECHA DE VIAJE'].dt.to_period('M').astype(str)
+
+    # ---- LISTA DE MESES ÚNICOS PARA EL DROPDOWN ----
+    meses_unicos = sorted(df['MES'].dropna().unique(), reverse=True)
+
+    mes_filtro = request.GET.get('mes')
+
+    if mes_filtro:
+        df = df[df['MES'] == mes_filtro]
+
     context = {
-        # Gráfico motivos
-        'motivos': list(conteo_motivos['motivo']),
-        'cant_motivos': list(conteo_motivos['cantidad']),
-        # Gráfico casos por mes
-        'meses': list(conteo_mes['mes']),
         'cant_meses': list(conteo_mes['cantidad']),
-        # Gráfico casos por día de semana
-        'dias': list(conteo_dia['dia']),
         'cant_dias': list(conteo_dia['cantidad']),
-        # Contador
         'casos_espera': casos_espera,
         'casos_robada': casos_robada,
         'casos_robada_recuperada': casos_robada_recuperada,
+        'conteo_motivos': conteo_motivos,
+        'dias': list(conteo_dia['dia']),
+        'meses_unicos': meses_unicos,
+        'mes_actual': mes_filtro,
+        'meses': list(conteo_mes['mes']),
+        'motivos': list(df['MOTIVO'].value_counts().index),
+        'cant_motivos': list(df['MOTIVO'].value_counts().values),
     }
+
     return render(request, 'inicio/motivos.html', context)
 
 
@@ -514,3 +570,78 @@ def contar_viajes(df):
         # Opcional: loguear o imprimir para debug
         print("Error en contar_viajes:", e)
         return "Error"
+
+
+def descargar_ultimo_uso(request):
+    from googleapiclient.discovery import build
+    from google.oauth2 import service_account
+    from googleapiclient.http import MediaIoBaseDownload
+    from io import BytesIO
+    import pandas as pd
+    import os
+    from django.http import HttpResponse
+
+    # --- MISMO CÓDIGO QUE EN mostrar_usuarios PARA CONECTAR A DRIVE ---
+    scopes = ['https://www.googleapis.com/auth/drive']
+
+    rutas = [
+        r'C:\Users\27384244926\Documents\Python_GIT\python_bicis\python_bicis\client.json',
+        r'F:\python_bicis\python_bicis\client.json',
+        r'c:\Users\20349069890\python_bicis\client.json',
+        r'c:\Users\20349069890\ecobici_github\client.json'
+    ]
+
+    key_path = next((ruta for ruta in rutas if os.path.exists(ruta)), None)
+    if not key_path:
+        return HttpResponse("No se encontró el archivo client.json.", content_type="text/plain")
+
+    credentials = service_account.Credentials.from_service_account_file(
+        key_path, scopes=scopes
+    )
+    drive_service = build('drive', 'v3', credentials=credentials)
+
+    folder_id = '15VrRfhgGQdVeOpD2Q_BD2287WCFWif8d'
+    target_file_name = 'Bicicletas_acumulado_procesado_2025.csv'
+
+    query = f"name='{target_file_name}' and '{folder_id}' in parents"
+    results = drive_service.files().list(q=query, fields="files(id, name)").execute()
+    files = results.get('files', [])
+
+    if not files:
+        return HttpResponse("Archivo no encontrado en Drive.", content_type="text/plain")
+
+    file_id = files[0]['id']
+    request_drive = drive_service.files().get_media(fileId=file_id)
+    file_stream = BytesIO()
+    downloader = MediaIoBaseDownload(file_stream, request_drive)
+
+    done = False
+    while not done:
+        status, done = downloader.next_chunk()
+    file_stream.seek(0)
+
+    # --- Cargar CSV a pandas ---
+    usuarios = pd.read_csv(file_stream, encoding="latin-1", sep="\t")
+
+    # --- Asegurar tipo de fecha ---
+    usuarios['Fecha_Inicio'] = pd.to_datetime(usuarios['Fecha_Inicio'], errors='coerce')
+    usuarios = usuarios.dropna(subset=['Fecha_Inicio'])
+
+    # --- Calcular último uso por bicicleta ---
+    if 'Msnbc_de_bicicleta' not in usuarios.columns or 'Fecha_Inicio' not in usuarios.columns:
+        return HttpResponse("No se encontraron las columnas necesarias.", content_type="text/plain")
+
+    ultimo_uso = (
+        usuarios.groupby('Msnbc_de_bicicleta')['Fecha_Inicio']
+        .max()
+        .reset_index()
+        .rename(columns={'Fecha_Inicio': 'Ultimo_Uso'})
+        .sort_values('Ultimo_Uso', ascending=False)
+    )
+
+    # --- Generar respuesta CSV ---
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename=\"ultimo_uso_bicicletas.csv\"'
+    ultimo_uso.to_csv(path_or_buf=response, index=False)
+
+    return response

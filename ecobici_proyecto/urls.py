@@ -16,7 +16,6 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-
 from inicio import views
 
 urlpatterns = [
@@ -26,4 +25,6 @@ urlpatterns = [
     path('motivos/', views.dashboard, name='motivos'),
     path('usuarios/', views.mostrar_usuarios, name='usuarios'),
     path("grafico_productos/", views.grafico_productos, name="grafico_productos"),
+    # 🆕 Nueva ruta para descargar el CSV
+    path('descargar_ultimo_uso/', views.descargar_ultimo_uso, name='descargar_ultimo_uso'),
 ]

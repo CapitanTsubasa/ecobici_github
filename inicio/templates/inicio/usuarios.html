@@ -192,5 +192,23 @@ new Chart(ctx, {
 </script>
 
 
+<!--
+<h4>🕒 Último uso por bicicleta</h4>
+    <div class="table-responsive">
+        {{ tabla_ultimo_uso|safe }}
+    </div>
+-->
+
+
+<div class="card mt-4 p-3 shadow-sm">
+  {{ grafico_bicis_html|safe }}
+</div>
+
+
+<div class="mt-3">
+    <a href="{% url 'descargar_ultimo_uso' %}" class="btn btn-success">
+    ⬇️ Descargar CSV Último uso
+    </a>
+</div>
 
 {% endblock content %}

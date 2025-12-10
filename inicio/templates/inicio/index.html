@@ -13,11 +13,10 @@
 <div class="navbar">
   <a href="{% url 'index' %}" class="btn"><span>INICIO</span></a>
   <a href="{% url 'viajes' %}" class="btn"><span>VIAJES</span></a>
-  <a href="{% url 'motivos' %}" class="btn"><span>MOTIVOS</span></a>
+  <a href="{% url 'motivos' %}" class="btn"><span>PP | DESAPARECIDAS</span></a>
   <a href="{% url 'usuarios' %}" class="btn"><span>USUARIOS</span></a>
   <a href="{% url 'grafico_productos' %}" class="btn"><span>ANÁLISIS DE PRODUCTOS</span></a>
-  <a href="{% url 'grafico_productos' %}" class="btn"><span>ANÁLISIS DE PRODUCTOS</span></a>
-</div>
+
 <!-- BARRA DE REDES SOCIALES --> 
 <div>
 <ul class="wrapper">
@@ -29,6 +28,7 @@
       height="1.2em"
       fill="currentColor"
       xmlns="http://www.w3.org/2000/svg"
+      class="facebook"
     >
       <path
         d="M279.14 288l14.22-92.66h-88.91v-60.13c0-25.35 12.42-50.06 52.24-50.06h40.42V6.26S260.43 0 225.36 0c-73.22 0-121.08 44.38-121.08 124.72v70.62H22.89V288h81.39v224h100.17V288z"
@@ -36,6 +36,7 @@
     </svg>
     </a>
   </li>
+  
   <li class="icon twitter">
     <span class="tooltip">Twitter</span>
     <svg
@@ -50,6 +51,7 @@
       ></path>
     </svg>
   </li>
+
   <li class="icon instagram">
     <span class="tooltip">Instagram</span>
     <svg
@@ -70,8 +72,10 @@
     <!-- FIN DE PRUEBA BARRA -->
 
 {% block content %}
-    <h1>Proyecto Ecobici Web</h1>
-    <p> {{ mensaje }}</p>
+    <button class="button" data-text="Awesome">
+    <span class="actual-text">&nbsp;Proyecto Ecobici Web&nbsp;</span>
+    <span aria-hidden="true" class="hover-text">&nbsp;Proyecto Ecobici Web&nbsp;</span>
+    </button>
 
 
 <h2>Cantidad de bicicletas por estado</h2>
