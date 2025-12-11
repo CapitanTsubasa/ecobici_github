@@ -463,11 +463,10 @@ def dashboard(request):
     key_path = r'c:\Users\20349069890\ecobici_github\client.json'
     scopes = ['https://www.googleapis.com/auth/spreadsheets.readonly']
     credentials = service_account.Credentials.from_service_account_file(key_path, scopes=scopes)
-
     sheets_service = build('sheets', 'v4', credentials=credentials)
 
     id_sheet = '1ZgtDX-VWm3jDiGH4NvpaWwJQIlonH7lHGyLFadRqhiU'
-    range_name = 'BICICLETAS!A:AP'  # Nombre real de la hoja
+    range_name = 'BICICLETAS!A:AP'
 
     result = sheets_service.spreadsheets().values().get(
         spreadsheetId=id_sheet,
@@ -480,25 +479,58 @@ def dashboard(request):
 
     df = pd.DataFrame(values[1:], columns=values[0])
 
-    # ================= GRÁFICO 1: MOTIVOS =================
-    conteo_motivos = df['MOTIVO'].value_counts().reset_index()
-    conteo_motivos.columns = ['motivo', 'cantidad']
-    conteo_motivos = df['MOTIVO'].value_counts().to_dict()
-
-    # ================= GRÁFICO 2: CASOS POR MES =================
+    # ======== PROCESAR FECHAS =========
     df['FECHA DE VIAJE'] = pd.to_datetime(df['FECHA DE VIAJE'], errors='coerce', dayfirst=True)
-    conteo_mes = df.groupby(df['FECHA DE VIAJE'].dt.to_period('M')).size().reset_index(name='cantidad')
+    df['MES'] = df['FECHA DE VIAJE'].dt.to_period('M').astype(str)
+    df['DIA_SEMANA'] = df['FECHA DE VIAJE'].dt.weekday   # 0=Lunes
+    df['DIA_SEMANA_NOMBRE'] = df['FECHA DE VIAJE'].dt.day_name()
+
+    # ======== CAPTURAR FILTROS =========
+    fecha_filtro = request.GET.get("fecha")   # YYYY-MM-DD
+    mes_filtro = request.GET.get("mes")       # YYYY-MM
+    dia_filtro = request.GET.get("dia")       # 0–6
+
+    # ======== APLICAR FILTROS =========
+    df_filtrado = df.copy()
+
+    # FILTRO POR FECHA EXACTA
+    if fecha_filtro:
+        fecha_dt = pd.to_datetime(fecha_filtro).date()
+        df_filtrado = df_filtrado[df_filtrado['FECHA DE VIAJE'].dt.date == fecha_dt]
+
+    # FILTRO POR MES
+    if mes_filtro:
+        df_filtrado = df_filtrado[df_filtrado['MES'] == mes_filtro]
+
+    # FILTRO POR DÍA DE SEMANA
+    if dia_filtro:
+        df_filtrado = df_filtrado[df_filtrado['DIA_SEMANA'] == int(dia_filtro)]
+
+    # ========================================================
+    #            REGENERAR TODAS LAS MÉTRICAS FILTRADAS
+    # ========================================================
+
+    # MOTIVOS
+    conteo_motivos = df_filtrado['MOTIVO'].value_counts().to_dict()
+
+    # CASOS POR MES
+    conteo_mes = (
+        df_filtrado.groupby(df_filtrado['FECHA DE VIAJE'].dt.to_period('M'))
+        .size()
+        .reset_index(name='cantidad')
+    )
     conteo_mes['mes'] = conteo_mes['FECHA DE VIAJE'].astype(str)
 
-    # ================= GRÁFICO 3: DÍA DE SEMANA =================
-    df['DIA_SEMANA'] = df['FECHA DE VIAJE'].dt.day_name()
-    conteo_dia = df['DIA_SEMANA'].value_counts().reset_index()
+    # DIA DE SEMANA
+    conteo_dia = df_filtrado['DIA_SEMANA_NOMBRE'].value_counts().reset_index()
     conteo_dia.columns = ['dia', 'cantidad']
 
-    # ======== FILTRAR MOTIVO VANDALISMO =========
-    df['MOTIVO'] = df['MOTIVO'].astype(str).str.upper().str.strip()
+    # VANDALISMO
+    df_filtrado['MOTIVO'] = df_filtrado['MOTIVO'].astype(str).str.upper().str.strip()
 
-    df_vandalismo = df[df['MOTIVO'].str.contains(r'\bVANDALISMO', na=False, regex=True)]
+    df_vandalismo = df_filtrado[
+        df_filtrado['MOTIVO'].str.contains(r'\bVANDALISMO', na=False, regex=True)
+    ]
 
     conteo_vandalismo = (
         df_vandalismo.groupby(df_vandalismo['FECHA DE VIAJE'].dt.to_period('M'))
@@ -507,36 +539,40 @@ def dashboard(request):
     )
     conteo_vandalismo['mes'] = conteo_vandalismo['FECHA DE VIAJE'].astype(str)
 
-    # ======== CONTADORES =========
-    casos_espera = df[df['ESTADO ACTUALIZADO'] == 'A LA ESPERA'].shape[0]
-    casos_robada = df[df['ESTADO ACTUALIZADO'].isin(['ROBADA', 'ROBADA - RECUPERADA'])].shape[0]
-    casos_robada_recuperada = df[df['ESTADO ACTUALIZADO'] == 'ROBADA - RECUPERADA'].shape[0]
+    # CONTADORES
+    casos_espera = df_filtrado[df_filtrado['ESTADO ACTUALIZADO'] == 'A LA ESPERA'].shape[0]
+    casos_robada = df_filtrado[df_filtrado['ESTADO ACTUALIZADO'].isin(['ROBADA', 'ROBADA - RECUPERADA'])].shape[0]
+    casos_robada_recuperada = df_filtrado[df_filtrado['ESTADO ACTUALIZADO'] == 'ROBADA - RECUPERADA'].shape[0]
 
-    # ======== AGREGAR CALENDARIO =========
-    df['FECHA DE VIAJE'] = pd.to_datetime(df['FECHA DE VIAJE'], errors='coerce', dayfirst=True)
-    df['MES'] = df['FECHA DE VIAJE'].dt.to_period('M').astype(str)
-
-    # ---- LISTA DE MESES ÚNICOS PARA EL DROPDOWN ----
+    # ======== LISTAS PARA SELECTORES =========
     meses_unicos = sorted(df['MES'].dropna().unique(), reverse=True)
+    dias_unicos = list(range(0, 7))
 
-    mes_filtro = request.GET.get('mes')
-
-    if mes_filtro:
-        df = df[df['MES'] == mes_filtro]
-
+    # ======== CONTEXTO =========
     context = {
+        'conteno_motivos': conteo_motivos,
         'cant_meses': list(conteo_mes['cantidad']),
+        'meses': list(conteo_mes['mes']),
+
+        'dias': list(conteo_dia['dia']),
         'cant_dias': list(conteo_dia['cantidad']),
+
         'casos_espera': casos_espera,
         'casos_robada': casos_robada,
         'casos_robada_recuperada': casos_robada_recuperada,
-        'conteo_motivos': conteo_motivos,
-        'dias': list(conteo_dia['dia']),
+
         'meses_unicos': meses_unicos,
         'mes_actual': mes_filtro,
-        'meses': list(conteo_mes['mes']),
-        'motivos': list(df['MOTIVO'].value_counts().index),
-        'cant_motivos': list(df['MOTIVO'].value_counts().values),
+        'fecha_actual': fecha_filtro,
+        'dia_actual': dia_filtro,
+
+        # Para gráfico de motivos
+        'motivos': list(df_filtrado['MOTIVO'].value_counts().index),
+        'cant_motivos': list(df_filtrado['MOTIVO'].value_counts().values),
+
+        # Vandalismo
+        'meses_vandalismo': list(conteo_vandalismo['mes']),
+        'cant_vandalismo': list(conteo_vandalismo['cantidad']),
     }
 
     return render(request, 'inicio/motivos.html', context)
