@@ -24,7 +24,8 @@
     <button class="btn btn-primary" type="submit">
       <label><strong>Día de semana:</strong></label>
     </button>
-
+    
+    <!--
     <select name="dia" onchange="this.form.submit()">
         <option value="">Todos</option>
         <option value="0" {% if dia_actual == '0' %}selected{% endif %}>Lunes</option>
@@ -35,9 +36,11 @@
         <option value="5" {% if dia_actual == '5' %}selected{% endif %}>Sábado</option>
         <option value="6" {% if dia_actual == '6' %}selected{% endif %}>Domingo</option>
     </select>
+    
 
     <button class="btn btn-primary" type="submit">Aplicar</button>
 </form>
+-->
 
   <!-- Tarjeta de contador -->
   <!-- BARRA 1 -->
@@ -64,166 +67,5 @@
       </div>
   </div>
 
-  <!-- BARRA 2 
-  <div style="display:flex; flex-wrap:wrap; gap:20px;">
-    {% for motivo, cantidad in conteo_motivos.items %}
-        <div style="background:#d4d4d4; color:black; padding:5px; border-radius:5px; width:150px; text-align:center; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-            <h4>{{ motivo }}</h4>
-            <p><strong>{{ cantidad }}</strong> casos</p>
-        </div>
-    {% endfor %}
-  </div>
-  -->
-
-  <!-- Contenedor del gráfico -->
-<div style="width: 80%; margin: 0 auto;">
-    <canvas id="motivosChart"></canvas>
-</div>
-
-<!-- Script de Chart.js -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-<script>
-    // Convertimos el diccionario Django a arrays JS
-    const labels = [
-        {% for motivo, cantidad in conteo_motivos.items %}
-            "{{ motivo }}",
-        {% endfor %}
-    ];
-
-    const data = [
-        {% for motivo, cantidad in conteo_motivos.items %}
-            {{ cantidad }},
-        {% endfor %}
-    ];
-
-    const ctx = document.getElementById('motivosChart');
-
-    new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'Cantidad de casos',
-                data: data,
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            scales: {
-                y: {
-                    beginAtZero: true
-                }
-            }
-        }
-    });
-</script>
-
-  <!-- Gráfico 1: Motivos -->
-
-  <div style="display: flex; justify-content: space-around; flex-wrap: wrap;">
-    <div style="width: 30%;">
-        <h3>Motivos</h3>
-        <canvas id="cant_motivos"></canvas>
-    </div>
-  <!-- Gráfico 2: Casos por Mes -->
-    <div style="width: 30%;">    
-        <h3>Casos por Mes</h3>
-        <canvas id="graficoMeses"></canvas>
-    </div>
-  <!-- Gráfico 3: Casos por Día de la Semana -->
-    <div style="width: 30%;"> 
-        <h3>Casos por Día de la Semana</h3>
-        <canvas id="graficoDias"></canvas>
-    </div>
-</div>
-
-    <!-- Gráfico 4: Vandalismo por Mes -->
-  <div style="display: flex; justify-content: space-around; flex-wrap: wrap;">
-    <div style="width: 90%; margin: 40px auto;">
-        <h3>Casos de Vandalismo por Mes</h3>
-        <canvas id="graficoVandalismo"></canvas>
-    </div>
-  </div>
-
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script>
-    // Gráfico de Motivos
-    new Chart(document.getElementById('graficoMotivos'), {
-      type: 'bar',
-      data: {
-        labels: {{ motivos|safe }},
-        datasets: [{
-          label: 'Motivos',
-          data: {{ cant_motivos|safe }},
-          backgroundColor: 'rgba(54, 162, 235, 0.6)'
-        }]
-      }
-    });
-
-    // Gráfico de Casos por Mes
-    new Chart(document.getElementById('graficoMeses'), {
-      type: 'bar',
-      data: {
-        labels: {{ meses|safe }},
-        datasets: [{
-          label: 'Casos por mes',
-          data: {{ cant_meses|safe }},
-          borderColor: 'rgba(75, 192, 192, 1)',
-          backgroundColor: 'rgba(75, 192, 192, 0.3)',
-          fill: true,
-          tension: 0.2
-        }]
-      }
-    });
-
-    // Gráfico de Casos por Día de la Semana
-    new Chart(document.getElementById('graficoDias'), {
-      type: 'bar',
-      data: {
-        labels: {{ dias|safe }},
-        datasets: [{
-          label: 'Casos por día',
-          data: {{ cant_dias|safe }},
-          backgroundColor: [
-            'rgba(255, 99, 132, 0.6)',
-            'rgba(54, 162, 235, 0.6)',
-            'rgba(255, 206, 86, 0.6)',
-            'rgba(75, 192, 192, 0.6)',
-            'rgba(153, 102, 255, 0.6)',
-            'rgba(255, 159, 64, 0.6)',
-            'rgba(201, 203, 207, 0.6)'
-          ]
-        }]
-      }
-    });
-
-    // Gráfico de Vandalismo por Mes
-    new Chart(document.getElementById("graficoVandalismo"), {
-      type: 'line',
-      data: {
-        labels: {{ meses_vandalismo|default:"[]"|safe }},
-        datasets: [{
-          label: 'Casos de Vandalismo',
-          data: {{ cant_vandalismo|default:"[]"|safe }},
-          borderColor: 'red',
-          backgroundColor: 'rgba(255, 0, 0, 0.2)',
-          fill: true,
-          tension: 0.3
-        }]
-      },
-    options: {
-        responsive: true,
-        plugins: {
-            legend: { position: 'top' },
-            title: {
-                display: true,
-                text: 'Evolución mensual de casos con MOTIVO relacionado a Vandalismo'
-            }
-        }
-    }
-});
-  </script>
 {% endblock %}
 

@@ -680,4 +680,7 @@ def descargar_ultimo_uso(request):
     response['Content-Disposition'] = 'attachment; filename=\"ultimo_uso_bicicletas.csv\"'
     ultimo_uso.to_csv(path_or_buf=response, index=False)
 
+    print(usuarios.columns)
+
+
     return response
