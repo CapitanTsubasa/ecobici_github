@@ -1,3 +1,4 @@
+from wsgiref import headers
 import plotly.express as px
 import json
 import pandas as pd
@@ -466,7 +467,7 @@ def dashboard(request):
     sheets_service = build('sheets', 'v4', credentials=credentials)
 
     id_sheet = '1ZgtDX-VWm3jDiGH4NvpaWwJQIlonH7lHGyLFadRqhiU'
-    range_name = 'BICICLETAS!A:AP'
+    range_name = 'BICICLETAS!A:BU'
 
     result = sheets_service.spreadsheets().values().get(
         spreadsheetId=id_sheet,
@@ -477,7 +478,17 @@ def dashboard(request):
     if not values:
         return HttpResponse("No hay datos en el Google Sheet")
 
-    df = pd.DataFrame(values[1:], columns=values[0])
+    headers = values[0]
+    rows = values[1:]
+
+    # Normalizar filas al largo del header
+    rows_normalizadas = [
+        row + [''] * (len(headers) - len(row))
+        for row in rows
+    ]
+    df = pd.DataFrame(rows_normalizadas, columns=headers)
+
+    # df = pd.DataFrame(values[1:], columns=values[0])
 
     # ======== PROCESAR FECHAS =========
     df['FECHA DE VIAJE'] = pd.to_datetime(df['FECHA DE VIAJE'], errors='coerce', dayfirst=True)
@@ -527,6 +538,8 @@ def dashboard(request):
 
     # VANDALISMO
     df_filtrado['MOTIVO'] = df_filtrado['MOTIVO'].astype(str).str.upper().str.strip()
+    df['FECHA ROBADA'] = pd.to_datetime(df['FECHA ROBADA'], errors='coerce', dayfirst=True)
+
 
     df_vandalismo = df_filtrado[
         df_filtrado['MOTIVO'].str.contains(r'\bVANDALISMO', na=False, regex=True)
@@ -548,11 +561,54 @@ def dashboard(request):
     meses_unicos = sorted(df['MES'].dropna().unique(), reverse=True)
     dias_unicos = list(range(0, 7))
 
+    # ============================
+    # DATASET EXCLUSIVO DE ROBOS
+    # ============================
+
+    df_robos = df[
+        df['ESTADO ACTUALIZADO'].isin(['ROBADA', 'ROBADA - RECUPERADA']) &
+        df['FECHA ROBADA'].notna()
+    ].copy()
+
+    conteo_mes = agrupar_por_mes(df_filtrado, 'FECHA DE VIAJE')
+    conteo_robos_mes = agrupar_por_mes(df_robos, 'FECHA ROBADA')
+
+    # ============================
+    # PARSEAR COORDENADAS GPS (FORMATO REAL DEL SHEET)
+    # ============================
+
+    df['Ultima coordenada de GPS'] = df['Ultima coordenada de GPS'].astype(str)
+
+    coords = df['Ultima coordenada de GPS'].str.extract(
+        r'(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)'
+    )
+
+    df['lat'] = pd.to_numeric(coords[0], errors='coerce')
+    df['lng'] = pd.to_numeric(coords[1], errors='coerce')
+    
+    df_filtrado = df.copy()
+
+    df_mapa = df_filtrado[
+        df_filtrado['lat'].notna() &
+        df_filtrado['lng'].notna()
+    ].copy()
+
+    puntos_gps = df_mapa[['lat', 'lng']].to_dict(orient='records')
+
+    #context['puntos_gps'] = json.dumps(puntos_gps) PENDIENTE PARA ARREGLAR NO SE VE EL MAPA.
+
+    print("Puntos GPS:", len(puntos_gps))
+    print(df_mapa[['Ultima coordenada de GPS', 'lat', 'lng']].head())
+
     # ======== CONTEXTO =========
     context = {
         'conteno_motivos': conteo_motivos,
         'cant_meses': list(conteo_mes['cantidad']),
         'meses': list(conteo_mes['mes']),
+
+    # Robos
+        'meses_robos': list(conteo_robos_mes['mes']),
+        'cant_robos': list(conteo_robos_mes['cantidad']),
 
         'dias': list(conteo_dia['dia']),
         'cant_dias': list(conteo_dia['cantidad']),
@@ -566,16 +622,34 @@ def dashboard(request):
         'fecha_actual': fecha_filtro,
         'dia_actual': dia_filtro,
 
-        # Para gráfico de motivos
+    # Motivos
         'motivos': list(df_filtrado['MOTIVO'].value_counts().index),
         'cant_motivos': list(df_filtrado['MOTIVO'].value_counts().values),
 
-        # Vandalismo
+    # Vandalismo
         'meses_vandalismo': list(conteo_vandalismo['mes']),
         'cant_vandalismo': list(conteo_vandalismo['cantidad']),
+
+    # ✅ MAPA
+        'puntos_gps': json.dumps(puntos_gps),
     }
 
     return render(request, 'inicio/motivos.html', context)
+
+
+
+def agrupar_por_mes(df, columna_fecha):
+    tmp = df[df[columna_fecha].notna()].copy()
+    return (
+        tmp.groupby(tmp[columna_fecha].dt.to_period('M'))
+        .size()
+        .reset_index(name='cantidad')
+        .assign(mes=lambda x: x[columna_fecha].astype(str))
+        .sort_values('mes')
+    )
+
+    
+
 
 
 

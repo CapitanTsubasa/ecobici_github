@@ -1,7 +1,8 @@
 {% extends 'inicio/index.html' %}
 
 {% block content %}
-  <h2>PREVENCION DE PERDIDAS - STATUS GENERAL</h2>
+
+  <h1>PREVENCION DE PERDIDAS - STATUS GENERAL</h1>
   
   <form method="GET" action="">
     <label><strong>Fecha exacta:</strong></label>
@@ -66,6 +67,62 @@
           <span style="font-size: 24px;">{{ casos_robada_recuperada }}</span>
       </div>
   </div>
+
+    <div style="width: 50%; margin: 40px auto;">
+        <h3>Robos por Mes (según Fecha Robada)</h3>
+        <canvas id="graficoRobosMes"></canvas>
+    </div>
+
+    <script>
+        new Chart(document.getElementById("graficoRobosMes"), {
+            type: 'bar',
+            data: {
+                labels: {{ meses_robos|safe }},
+                datasets: [{
+                    label: 'Cantidad de robos',
+                    data: {{ cant_robos|safe }},
+                    backgroundColor: 'rgba(180, 0, 0, 0.6)',
+                    borderColor: 'rgba(180, 0, 0, 1)',
+                    borderWidth: 1
+                }]
+            },
+        options: {
+            responsive: true,
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
+    </script>
+
+    <div id="map" style="height: 500px; width: 100%; border-radius: 12px; margin-top: 40px;"></div>
+    
+    <script>
+        const puntos = {{ puntos_gps|safe }};
+        console.log(puntos);  // DEBUG
+
+        if (puntos.length > 0) {
+
+            const map = L.map('map').setView([-34.61, -58.38], 12);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap'
+            }).addTo(map);
+
+            puntos.forEach(p => {
+                if (p.lat && p.lng) {
+                    L.circleMarker([p.lat, p.lng], {
+                        radius: 4,
+                        color: '#d90429',
+                        fillOpacity: 0.7
+                    }).addTo(map);
+                }
+            });
+
+        } else {
+            console.warn("No hay puntos GPS para mostrar");
+        }
+    </script>
 
 {% endblock %}
 
