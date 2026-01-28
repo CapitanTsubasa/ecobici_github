@@ -4,10 +4,11 @@
 
   <h1>PREVENCION DE PERDIDAS - STATUS GENERAL</h1>
   
+<!--
   <form method="GET" action="">
     <label><strong>Fecha exacta:</strong></label>
     <input type="date" name="fecha" value="{{ fecha_actual }}" onchange="this.form.submit()">
-
+-->
     
     <label><strong>Mes:</strong></label>
     
@@ -22,10 +23,12 @@
     </select>
     </button>
 
+<!--    <button class="btn btn-primary" type="submit">
     <button class="btn btn-primary" type="submit">
       <label><strong>Día de semana:</strong></label>
     </button>
-    
+--> 
+
     <!--
     <select name="dia" onchange="this.form.submit()">
         <option value="">Todos</option>
@@ -66,6 +69,20 @@
           <strong>RECUPERADAS</strong><br>
           <span style="font-size: 24px;">{{ casos_robada_recuperada }}</span>
       </div>
+
+      <!-- COMISARIA -->
+      <div style="background-color: rgb(133, 133, 133); color: white; padding: 15px; width: 150px; 
+                  text-align: center; border-radius: 10px;">
+          <strong>COMISARIA</strong><br>
+          <span style="font-size: 24px;">{{ comisaria }}</span>
+      </div>
+
+      <!-- VANDALISMO -->
+      <div style="background-color: rgb(133, 133, 133); color: white; padding: 15px; width: 150px; 
+                  text-align: center; border-radius: 10px;">
+          <strong>VANDALISMO</strong><br>
+          <span style="font-size: 24px;">{{ vandalismo }}</span>
+      </div>
   </div>
 
     <div style="width: 50%; margin: 40px auto;">
@@ -73,8 +90,16 @@
         <canvas id="graficoRobosMes"></canvas>
     </div>
 
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Plugin datalabels -->
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+
     <script>
-        new Chart(document.getElementById("graficoRobosMes"), {
+        const ctx = document.getElementById("graficoRobosMes");
+
+        new Chart(ctx, {
             type: 'bar',
             data: {
                 labels: {{ meses_robos|safe }},
@@ -86,14 +111,80 @@
                     borderWidth: 1
                 }]
             },
-        options: {
-            responsive: true,
-            scales: {
-                y: { beginAtZero: true }
-            }
-        }
-    });
+            options: {
+                responsive: true,
+                scales: {
+                    y: { beginAtZero: true }
+                },
+                plugins: {
+                    datalabels: {
+                        anchor: 'end',
+                        align: 'top',
+                        color: '#000',
+                        font: {
+                            weight: 'bold',
+                            size: 10
+                        },
+                        formatter: (value) => value
+                    }
+                }
+            },
+            plugins: [ChartDataLabels]
+        });
     </script>
+
+    <!-- Graficos de Recuperos -->
+
+    <div style="width: 80%; height: 420px; margin: 40px auto;">
+        <h3>Recuperos por Mes (según Fecha de Recupero)</h3>
+        <canvas id="graficoRecuperosMes"></canvas>
+    </div>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Plugin datalabels -->
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+
+    <script>
+        const ctx = document.getElementById("graficoRecuperosMes");
+
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: {{ meses_recuperos|safe }},
+                datasets: [{
+                    label: 'Cantidad de recuperos',
+                    data: {{ cant_recuperos|safe }},
+                    backgroundColor: 'rgba(0, 130, 39, 0.6)',
+                    borderColor: 'rgb(1, 113, 16)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true }
+                },
+                plugins: {
+                    datalabels: {
+                        anchor: 'end',
+                        align: 'top',
+                        color: '#000',
+                        font: {
+                            weight: 'bold',
+                            size: 10
+                        },
+                        formatter: (value) => value
+                    }
+                }
+            },
+            plugins: [ChartDataLabels]
+        });
+    </script>
+
+    <!-- INTENTO Mapa de puntos GPS -->
 
     <div id="map" style="height: 500px; width: 100%; border-radius: 12px; margin-top: 40px;"></div>
     

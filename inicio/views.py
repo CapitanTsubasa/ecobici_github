@@ -537,7 +537,13 @@ def dashboard(request):
     conteo_dia.columns = ['dia', 'cantidad']
 
     # VANDALISMO
-    df_filtrado['MOTIVO'] = df_filtrado['MOTIVO'].astype(str).str.upper().str.strip()
+    # df_filtrado['MOTIVO'] = df_filtrado['MOTIVO'].astype(str).str.upper().str.strip()
+    df_filtrado['MOTIVO'] = (
+    df_filtrado['MOTIVO']
+    .astype(str)
+    .str.upper()
+    .str.strip()
+    )
     df['FECHA ROBADA'] = pd.to_datetime(df['FECHA ROBADA'], errors='coerce', dayfirst=True)
 
 
@@ -556,6 +562,8 @@ def dashboard(request):
     casos_espera = df_filtrado[df_filtrado['ESTADO ACTUALIZADO'] == 'A LA ESPERA'].shape[0]
     casos_robada = df_filtrado[df_filtrado['ESTADO ACTUALIZADO'].isin(['ROBADA', 'ROBADA - RECUPERADA'])].shape[0]
     casos_robada_recuperada = df_filtrado[df_filtrado['ESTADO ACTUALIZADO'] == 'ROBADA - RECUPERADA'].shape[0]
+    comisaria = df_filtrado[df_filtrado['ESTADO ACTUALIZADO'] == 'COMISARIA'].shape[0]
+    vandalismo_total = df_filtrado[df_filtrado['MOTIVO'].isin(['VANDALISMO-AWOL', 'VANDALISMO FALSA OPERATIVA', 'VANDALISMO FALSA NO ESTA ASEGURADA', 'VANDALISMO PINO CORTADO', 'VANDALISMO-DOCK'])].shape[0]
 
     # ======== LISTAS PARA SELECTORES =========
     meses_unicos = sorted(df['MES'].dropna().unique(), reverse=True)
@@ -572,6 +580,21 @@ def dashboard(request):
 
     conteo_mes = agrupar_por_mes(df_filtrado, 'FECHA DE VIAJE')
     conteo_robos_mes = agrupar_por_mes(df_robos, 'FECHA ROBADA')
+
+    # ============================
+    # DATASET EXCLUSIVO DE RECUPEROS
+    # ============================
+
+    df['FECHA RECUPERADA'] = pd.to_datetime(
+    df['FECHA RECUPERADA'], errors='coerce', dayfirst=True
+    )
+
+    df_recuperos = df[
+        (df['ESTADO ACTUALIZADO'] == 'ROBADA - RECUPERADA') &
+        (df['FECHA RECUPERADA'].notna())
+    ].copy()
+
+    conteo_recuperos_mes = agrupar_por_mes(df_recuperos, 'FECHA RECUPERADA')
 
     # ============================
     # PARSEAR COORDENADAS GPS (FORMATO REAL DEL SHEET)
@@ -616,6 +639,8 @@ def dashboard(request):
         'casos_espera': casos_espera,
         'casos_robada': casos_robada,
         'casos_robada_recuperada': casos_robada_recuperada,
+        'comisaria': comisaria,
+        'vandalismo': vandalismo_total,
 
         'meses_unicos': meses_unicos,
         'mes_actual': mes_filtro,
@@ -629,6 +654,10 @@ def dashboard(request):
     # Vandalismo
         'meses_vandalismo': list(conteo_vandalismo['mes']),
         'cant_vandalismo': list(conteo_vandalismo['cantidad']),
+    
+    # Recuperos
+        'meses_recuperos': list(conteo_recuperos_mes['mes']),
+        'cant_recuperos': list(conteo_recuperos_mes['cantidad']),
 
     # ✅ MAPA
         'puntos_gps': json.dumps(puntos_gps),
