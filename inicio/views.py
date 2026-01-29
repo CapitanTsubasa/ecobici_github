@@ -609,11 +609,12 @@ def dashboard(request):
     df['lat'] = pd.to_numeric(coords[0], errors='coerce')
     df['lng'] = pd.to_numeric(coords[1], errors='coerce')
     
-    df_filtrado = df.copy()
+    
 
-    df_mapa = df_filtrado[
-        df_filtrado['lat'].notna() &
-        df_filtrado['lng'].notna()
+    df_mapa = df[
+        df['ESTADO ACTUALIZADO'].isin(['ROBADA', 'ROBADA - RECUPERADA']) &
+        df['lat'].notna() &
+        df['lng'].notna()
     ].copy()
 
     puntos_gps = df_mapa[['lat', 'lng']].to_dict(orient='records')

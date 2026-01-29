@@ -10,18 +10,18 @@
     <input type="date" name="fecha" value="{{ fecha_actual }}" onchange="this.form.submit()">
 -->
     
-    <label><strong>Mes:</strong></label>
-    
-    <button class="btn btn-primary" type="submit">
-    <select name="mes" onchange="this.form.submit()">
-        <option value="">Todos</option>
-        {% for m in meses_unicos %}
-            <option value="{{ m }}" {% if m|stringformat:"s" == mes_actual %}selected{% endif %}>
-                {{ m }}
-            </option>
-        {% endfor %}
-    </select>
-    </button>
+    <form method="get" style="display: inline-block;">
+        <label><strong>Mes:</strong></label>
+
+        <select name="mes" onchange="this.form.submit()" class="form-select">
+            <option value="">Todos</option>
+            {% for m in meses_unicos %}
+                <option value="{{ m }}" {% if m == mes_actual %}selected{% endif %}>
+                    {{ m }}
+                </option>
+            {% endfor %}
+        </select>
+    </form>
 
 <!--    <button class="btn btn-primary" type="submit">
     <button class="btn btn-primary" type="submit">
@@ -85,9 +85,27 @@
       </div>
   </div>
 
-    <div style="width: 50%; margin: 40px auto;">
-        <h3>Robos por Mes (según Fecha Robada)</h3>
-        <canvas id="graficoRobosMes"></canvas>
+    <!-- CONTENEDOR FLEX -->
+    <div style="
+        display: flex;
+        gap: 20px;
+        justify-content: space-between;
+        align-items: flex-start;
+        width: 100%;
+    ">
+
+    <!-- GRAFICO ROBOS -->
+        <div style="width: 48%; height: 300px; margin: 10px">
+            <h3 style="text-align:center;">Robos por Mes (según Fecha Robada)</h3>
+            <canvas id="graficoRobosMes"></canvas>
+        </div>
+
+    <!-- GRAFICO RECUPEROS -->
+        <div style="width: 48%; height: 300px; margin: 10px">
+            <h3 style="text-align:center;">Recuperos por Mes (según Fecha de Recupero)</h3>
+            <canvas id="graficoRecuperosMes"></canvas>
+        </div>
+
     </div>
 
     <!-- Chart.js -->
@@ -97,100 +115,91 @@
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
 
     <script>
-        const ctx = document.getElementById("graficoRobosMes");
+    const ctxRobos = document.getElementById("graficoRobosMes");
 
-        new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: {{ meses_robos|safe }},
-                datasets: [{
-                    label: 'Cantidad de robos',
-                    data: {{ cant_robos|safe }},
-                    backgroundColor: 'rgba(180, 0, 0, 0.6)',
-                    borderColor: 'rgba(180, 0, 0, 1)',
-                    borderWidth: 1
-                }]
+    new Chart(ctxRobos, {
+        type: 'bar',
+        data: {
+            labels: {{ meses_robos|safe }},
+            datasets: [{
+                label: 'Cantidad de robos',
+                data: {{ cant_robos|safe }},
+                backgroundColor: 'rgba(180, 0, 0, 0.6)',
+                borderColor: 'rgba(180, 0, 0, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: { beginAtZero: true }
             },
-            options: {
-                responsive: true,
-                scales: {
-                    y: { beginAtZero: true }
-                },
-                plugins: {
-                    datalabels: {
-                        anchor: 'end',
-                        align: 'top',
-                        color: '#000',
-                        font: {
-                            weight: 'bold',
-                            size: 10
-                        },
-                        formatter: (value) => value
-                    }
+            plugins: {
+                datalabels: {
+                    anchor: 'end',
+                    align: 'top',
+                    color: '#000',
+                    font: { weight: 'bold', size: 10 }
                 }
-            },
-            plugins: [ChartDataLabels]
-        });
+            }
+        },
+        plugins: [ChartDataLabels]
+    });
     </script>
 
     <!-- Graficos de Recuperos -->
 
-    <div style="width: 80%; height: 420px; margin: 40px auto;">
-        <h3>Recuperos por Mes (según Fecha de Recupero)</h3>
-        <canvas id="graficoRecuperosMes"></canvas>
-    </div>
-
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-    <!-- Plugin datalabels -->
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
 
     <script>
-        const ctx = document.getElementById("graficoRecuperosMes");
+    const ctxRecuperos = document.getElementById("graficoRecuperosMes");
 
-        new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: {{ meses_recuperos|safe }},
-                datasets: [{
-                    label: 'Cantidad de recuperos',
-                    data: {{ cant_recuperos|safe }},
-                    backgroundColor: 'rgba(0, 130, 39, 0.6)',
-                    borderColor: 'rgb(1, 113, 16)',
-                    borderWidth: 1
-                }]
+    new Chart(ctxRecuperos, {
+        type: 'bar',
+        data: {
+            labels: {{ meses_recuperos|safe }},
+            datasets: [{
+                label: 'Cantidad de recuperos',
+                data: {{ cant_recuperos|safe }},
+                backgroundColor: 'rgba(0, 130, 39, 0.6)',
+                borderColor: 'rgb(1, 113, 16)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: { beginAtZero: true }
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: { beginAtZero: true }
-                },
-                plugins: {
-                    datalabels: {
-                        anchor: 'end',
-                        align: 'top',
-                        color: '#000',
-                        font: {
-                            weight: 'bold',
-                            size: 10
-                        },
-                        formatter: (value) => value
-                    }
+            plugins: {
+                datalabels: {
+                    anchor: 'end',
+                    align: 'top',
+                    color: '#000',
+                    font: { weight: 'bold', size: 10 }
                 }
-            },
-            plugins: [ChartDataLabels]
-        });
+            }
+        },
+        plugins: [ChartDataLabels]
+    });
     </script>
 
     <!-- INTENTO Mapa de puntos GPS -->
 
-    <div id="map" style="height: 500px; width: 100%; border-radius: 12px; margin-top: 40px;"></div>
-    
+    <!-- Leaflet -->
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <div id="map"
+        style="height: 500px; width: 100%; border-radius: 12px; margin-top: 60px; margin-left: auto; margin-right: auto;">
+    </div>
+
     <script>
         const puntos = {{ puntos_gps|safe }};
-        console.log(puntos);  // DEBUG
+        console.log("Puntos GPS:", puntos);
 
         if (puntos.length > 0) {
 
@@ -200,15 +209,26 @@
                 attribution: '&copy; OpenStreetMap'
             }).addTo(map);
 
+            const bounds = [];
+
             puntos.forEach(p => {
-                if (p.lat && p.lng) {
-                    L.circleMarker([p.lat, p.lng], {
+                const lat = parseFloat(p.lat);
+                const lng = parseFloat(p.lng);
+
+                if (!isNaN(lat) && !isNaN(lng)) {
+                    const marker = L.circleMarker([lat, lng], {
                         radius: 4,
                         color: '#d90429',
                         fillOpacity: 0.7
                     }).addTo(map);
+
+                    bounds.push([lat, lng]);
                 }
             });
+
+            if (bounds.length > 0) {
+                map.fitBounds(bounds);
+            }
 
         } else {
             console.warn("No hay puntos GPS para mostrar");
