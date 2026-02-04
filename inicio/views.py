@@ -19,6 +19,8 @@ from django.http import HttpResponse
 
 from collections import Counter
 
+from urllib3 import request
+
 
 
 
@@ -482,8 +484,10 @@ def dashboard(request):
     rows = values[1:]
 
     # Normalizar filas al largo del header
+    num_cols = len(headers)
+
     rows_normalizadas = [
-        row + [''] * (len(headers) - len(row))
+        row[:num_cols] + [''] * (num_cols - len(row))
         for row in rows
     ]
     df = pd.DataFrame(rows_normalizadas, columns=headers)
@@ -544,8 +548,13 @@ def dashboard(request):
     .str.upper()
     .str.strip()
     )
-    df['FECHA ROBADA'] = pd.to_datetime(df['FECHA ROBADA'], errors='coerce', dayfirst=True)
+    #df['FECHA ROBADA'] = pd.to_datetime(df['FECHA ROBADA'], errors='coerce', dayfirst=True)
 
+    df['FECHA DE VIAJE'] = pd.to_datetime(df['FECHA DE VIAJE'], errors='coerce', dayfirst=True)
+    df['FECHA ROBADA'] = pd.to_datetime(df['FECHA ROBADA'], errors='coerce', dayfirst=True)
+    df['FECHA RECUPERADA'] = pd.to_datetime(df['FECHA RECUPERADA'], errors='coerce', dayfirst=True)
+
+    mes_filtro = request.GET.get("mes")
 
     df_vandalismo = df_filtrado[
         df_filtrado['MOTIVO'].str.contains(r'\bVANDALISMO', na=False, regex=True)
@@ -573,26 +582,56 @@ def dashboard(request):
     # DATASET EXCLUSIVO DE ROBOS
     # ============================
 
+    #df_robos = df_filtrado[
+    #    df_filtrado['ESTADO ACTUALIZADO'].isin(['ROBADA', 'ROBADA - RECUPERADA']) &
+    #    df_filtrado['FECHA ROBADA'].notna()
+    #].copy()
+
+    #conteo_mes = agrupar_por_mes(df_filtrado, 'FECHA DE VIAJE')
+    #conteo_robos_mes = agrupar_por_mes(df_robos, 'FECHA ROBADA')
+
     df_robos = df[
         df['ESTADO ACTUALIZADO'].isin(['ROBADA', 'ROBADA - RECUPERADA']) &
         df['FECHA ROBADA'].notna()
     ].copy()
 
-    conteo_mes = agrupar_por_mes(df_filtrado, 'FECHA DE VIAJE')
+    if mes_filtro:
+        df_robos = df_robos[
+            df_robos['FECHA ROBADA'].dt.to_period('M').astype(str) == mes_filtro
+        ]
+
     conteo_robos_mes = agrupar_por_mes(df_robos, 'FECHA ROBADA')
 
     # ============================
     # DATASET EXCLUSIVO DE RECUPEROS
     # ============================
 
-    df['FECHA RECUPERADA'] = pd.to_datetime(
-    df['FECHA RECUPERADA'], errors='coerce', dayfirst=True
-    )
+    #df['FECHA RECUPERADA'] = pd.to_datetime(
+    #df['FECHA RECUPERADA'], errors='coerce', dayfirst=True
+    #)
+
+    #df_recuperos = df_filtrado[
+    #    (df_filtrado['ESTADO ACTUALIZADO'] == 'ROBADA - RECUPERADA') &
+    #    (df_filtrado['FECHA RECUPERADA'].notna())
+    #].copy()
+
+    #conteo_recuperos_mes = agrupar_por_mes(df_recuperos, 'FECHA RECUPERADA')
+
+
+    #if mes_filtro:
+    #    df = df[
+    #        df['FECHA DE VIAJE'].dt.to_period('M').astype(str) == mes_filtro
+    #    ]
 
     df_recuperos = df[
         (df['ESTADO ACTUALIZADO'] == 'ROBADA - RECUPERADA') &
         (df['FECHA RECUPERADA'].notna())
     ].copy()
+
+    if mes_filtro:
+        df_recuperos = df_recuperos[
+            df_recuperos['FECHA RECUPERADA'].dt.to_period('M').astype(str) == mes_filtro
+        ]
 
     conteo_recuperos_mes = agrupar_por_mes(df_recuperos, 'FECHA RECUPERADA')
 
@@ -609,15 +648,22 @@ def dashboard(request):
     df['lat'] = pd.to_numeric(coords[0], errors='coerce')
     df['lng'] = pd.to_numeric(coords[1], errors='coerce')
     
-    
-
     df_mapa = df[
-        df['ESTADO ACTUALIZADO'].isin(['ROBADA', 'ROBADA - RECUPERADA']) &
         df['lat'].notna() &
-        df['lng'].notna()
+        df['lng'].notna() &
+        df['ESTADO ACTUALIZADO'].isin(['ROBADA', 'ROBADA - RECUPERADA'])
     ].copy()
 
     puntos_gps = df_mapa[['lat', 'lng']].to_dict(orient='records')
+
+    #df_mapa = df_filtrado[
+    #    df_filtrado['lat'].notna() &
+    #    df_filtrado['lng'].notna()
+    #].copy()
+        #df['ESTADO ACTUALIZADO'].isin(['ROBADA', 'ROBADA - RECUPERADA']) &
+   
+
+    
 
     #context['puntos_gps'] = json.dumps(puntos_gps) PENDIENTE PARA ARREGLAR NO SE VE EL MAPA.
 
@@ -666,18 +712,28 @@ def dashboard(request):
 
     return render(request, 'inicio/motivos.html', context)
 
+# ================================================== AGRUPAR POR MES ==================================================
 
 
 def agrupar_por_mes(df, columna_fecha):
-    tmp = df[df[columna_fecha].notna()].copy()
-    return (
-        tmp.groupby(tmp[columna_fecha].dt.to_period('M'))
-        .size()
-        .reset_index(name='cantidad')
-        .assign(mes=lambda x: x[columna_fecha].astype(str))
-        .sort_values('mes')
+    tmp = df.copy()
+
+    tmp[columna_fecha] = pd.to_datetime(
+        tmp[columna_fecha],
+        errors='coerce',
+        dayfirst=True
     )
 
+    conteo = (
+        tmp
+        .dropna(subset=[columna_fecha])
+        .groupby(tmp[columna_fecha].dt.to_period('M'))
+        .size()
+        .reset_index(name='cantidad')
+    )
+
+    conteo['mes'] = conteo[columna_fecha].astype(str)
+    return conteo
     
 
 
