@@ -6,6 +6,7 @@ import os
 import unicodedata
 import matplotlib.pyplot as plt
 import calendar
+import csv
 
 from io import BytesIO
 
@@ -112,7 +113,7 @@ def mostrar_usuarios(request):
     folder_id = '15VrRfhgGQdVeOpD2Q_BD2287WCFWif8d'
     target_file_name = 'Bicicletas_acumulado_procesado_2025.csv'
 
-    query = f"name= '{target_file_name}' and '{folder_id}' in parents"
+    query = f"name='{target_file_name}' and '{folder_id}' in parents"
     results = drive_service.files().list(q=query, fields="files(id, name)").execute()
     files = results.get('files', [])
 
@@ -126,197 +127,131 @@ def mostrar_usuarios(request):
 
     done = False
     while not done:
-        status, done = downloader.next_chunk()
+        _, done = downloader.next_chunk()
     file_stream.seek(0)
 
-    # Cargar en pandas
+    # ================================
+    # 📥 Carga del CSV
+    # ================================
     usuarios = pd.read_csv(file_stream, encoding="latin-1", sep="\t")
+    usuarios.columns = usuarios.columns.str.strip()
 
-    # ================================
-    # 📅 Manejo de fechas
-    # ================================
     usuarios['Fecha_Inicio'] = pd.to_datetime(usuarios['Fecha_Inicio'], errors='coerce')
     usuarios = usuarios.dropna(subset=['Fecha_Inicio'])
-    usuarios['Mes'] = usuarios['Fecha_Inicio'].dt.to_period('M')
-
-    fecha_actual = pd.Timestamp.now()
-    mes_actual = fecha_actual.to_period('M')
-    anio_actual = fecha_actual.year
 
     # ================================
-    # 📊 Totales y acumulaciones
+    # 🎯 Filtro por estación (origen)
     # ================================
-    total_anual = usuarios[usuarios['Fecha_Inicio'].dt.year == anio_actual].shape[0]
-    viajes_mes_actual = usuarios[usuarios['Mes'] == mes_actual].shape[0]
-    porcentaje_mes = (viajes_mes_actual / total_anual * 100) if total_anual > 0 else 0
+    estacion_filtro = request.GET.get('estacion')
+
+    df = usuarios.copy()
+    if estacion_filtro:
+        df = df[df['Nombre_Inicio_Viaje'] == estacion_filtro]
 
     # ================================
-    # 📊 Viajes por mes (para gráfico)
+    # 📊 Viajes por mes
     # ================================
+    df['Mes'] = df['Fecha_Inicio'].dt.to_period('M')
+
     viajes_por_mes = (
-        usuarios[usuarios['Fecha_Inicio'].dt.year == anio_actual]
-        .groupby(usuarios['Fecha_Inicio'].dt.month)
+        df.groupby('Mes')
         .size()
         .reset_index(name='viajes')
     )
-    viajes_por_mes['mes_nombre'] = viajes_por_mes['Fecha_Inicio'].apply(
-        lambda x: pd.Timestamp(2025, x, 1).strftime('%b')
+    viajes_por_mes['Mes'] = viajes_por_mes['Mes'].astype(str)
+
+    # ================================
+    # 📊 Viajes por origen / destino
+    # ================================
+    viajes_por_origen = (
+        df['Nombre_Inicio_Viaje']
+        .value_counts()
+        .head(400)
+        .to_dict()
     )
 
-    meses_labels = viajes_por_mes['mes_nombre'].tolist()
-    viajes_values = viajes_por_mes['viajes'].tolist()
-
-    # ================================
-    # 📊 Conteo por sexo
-    # ================================
-    sexo_counts = usuarios['Sexo'].value_counts().to_dict()
-
-    # ================================
-    # 📊 Viajes por estación de origen (Top 10)
-    # ================================
-    viajes_por_origen = usuarios['Nombre_Inicio_Viaje'].value_counts().head(10)
-    viajes_por_origen_dict = viajes_por_origen.to_dict()
-
-    # ================================
-    # 📊 Viajes por destino (Top 10)
-    # ================================
-    viajes_por_destino = usuarios['Nombre_Final_Viaje'].value_counts().head(10)
-    viajes_por_destino_dict = viajes_por_destino.to_dict()
-
-    # ================================
-    # Tabla preview
-    # ================================
-    tabla_html = usuarios.head(50).to_html(classes="table table-striped", index=False)
-
-    # ================================
-    # 📊 Promedio de viajes por tipo de día (mes actual)
-    # ================================
-
-    # --- Asegurarse que Fecha_Inicio sea datetime ---
-    usuarios['Fecha_Inicio'] = pd.to_datetime(usuarios['Fecha_Inicio'], errors='coerce')
-
-    # --- Filtrar mes actual ---
-    mes_actual = pd.Timestamp.now().month
-    anio_actual = pd.Timestamp.now().year
-
-    usuarios_mes_actual = usuarios[
-        (usuarios['Fecha_Inicio'].dt.month == mes_actual) &
-        (usuarios['Fecha_Inicio'].dt.year == anio_actual)
-    ]
-
-    # --- Día de la semana (0=Lunes, 6=Domingo) ---
-    usuarios_mes_actual['dia_semana'] = usuarios_mes_actual['Fecha_Inicio'].dt.dayofweek
-    usuarios_mes_actual['tipo_dia'] = usuarios_mes_actual['dia_semana'].apply(lambda x: 'Fin de semana' if x >= 5 else 'Lunes a Viernes')
-
-    # --- Contar viajes por día ---
-    viajes_por_dia = usuarios_mes_actual.groupby(usuarios_mes_actual['Fecha_Inicio'].dt.date).size().reset_index(name='viajes')
-
-    # --- Renombrar y preparar ---
-    viajes_por_dia.rename(columns={'Fecha_Inicio': 'fecha'}, inplace=True)
-    viajes_por_dia['fecha'] = pd.to_datetime(viajes_por_dia['fecha'], errors='coerce')
-    viajes_por_dia['dia_semana'] = viajes_por_dia['fecha'].dt.dayofweek
-    viajes_por_dia['tipo_dia'] = viajes_por_dia['dia_semana'].apply(lambda x: 'Fin de semana' if x >= 5 else 'Lunes a Viernes')
-
-    # --- Promedios ---
-    if not viajes_por_dia.empty:
-        promedio_lunes_viernes = viajes_por_dia[viajes_por_dia['tipo_dia'] == 'Lunes a Viernes']['viajes'].mean()
-        promedio_fin_semana = viajes_por_dia[viajes_por_dia['tipo_dia'] == 'Fin de semana']['viajes'].mean()
-    else:
-        promedio_lunes_viernes = promedio_fin_semana = 0
-
-    promedio_lunes_viernes = 0 if pd.isna(promedio_lunes_viernes) else promedio_lunes_viernes
-    promedio_fin_semana = 0 if pd.isna(promedio_fin_semana) else promedio_fin_semana
-
-    # --- Variaciones (de ejemplo) ---
-    variacion_lv = 0.037
-    variacion_fs = -0.015
-
-    # ================================
-    # 🚲 Análisis de uso de bicicletas (mes actual)
-    # ================================
-    # Usamos usuarios_mes_actual (ya filtrado)
-    if not usuarios_mes_actual.empty:
-        # 1️⃣ Bicicletas únicas usadas
-        bicicletas_usadas = usuarios_mes_actual['Msnbc_de_bicicleta'].nunique()
-
-        # 2️⃣ Total de viajes del mes
-        viajes_mes = len(usuarios_mes_actual)
-
-        # 3️⃣ Promedio de viajes por bicicleta
-        promedio_viajes_por_bici = viajes_mes / bicicletas_usadas if bicicletas_usadas > 0 else 0
-
-        # 4️⃣ Promedios de lunes a viernes y fin de semana (ya calculados antes)
-    else:
-        bicicletas_usadas = 0
-        viajes_mes = 0
-        promedio_viajes_por_bici = 0
-
-    # ============================================================
-    # 🚲 Gráfico de bicicletas únicas utilizadas por mes
-    # ============================================================
-    usuarios['Mes'] = usuarios['Fecha_Inicio'].dt.month
-    bicicletas_por_mes = usuarios.groupby('Mes')['Msnbc_de_bicicleta'].nunique().reset_index()
-    bicicletas_por_mes['Mes'] = bicicletas_por_mes['Mes'].apply(lambda x: calendar.month_abbr[x])
-
-    fig = px.bar(
-        bicicletas_por_mes,
-        x='Mes',
-        y='Msnbc_de_bicicleta',
-        title="🚲 Bicicletas únicas utilizadas por mes",
-        color_discrete_sequence=['#1f77b4']
+    viajes_por_destino = (
+        df['Nombre_Final_Viaje']
+        .value_counts()
+        .head(400)
+        .to_dict()
     )
-    grafico_bicis_html = fig.to_html(full_html=False)
-
-    # --- Otras secciones que ya tengas ---
-    # grafico_viajes_html = ...
-    # grafico_dias_html = ...
-
-    # --- Renderizado final ---
-    return render(request, "usuarios.html", {
-        "grafico_bicis_html": grafico_bicis_html,
-        # otros gráficos que ya pasás:
-        # "grafico_viajes_html": grafico_viajes_html,
-    })
 
     # ================================
-    # 📦 Render Context
+    # 📋 Tabla preview
     # ================================
-    render_context = {
+    tabla_html = df.head(50).to_html(classes="table table-striped", index=False)
+
+    # ================================
+    # 📌 Selector de estaciones
+    # ================================
+    estaciones_origen = sorted(
+        usuarios['Nombre_Inicio_Viaje']
+        .dropna()
+        .unique()
+        .tolist()
+    )
+
+    # ================================
+    # 📦 Contexto
+    # ================================
+    context = {
         "tabla": tabla_html,
-        "sexo_counts": sexo_counts,
-        "viajes_por_origen": viajes_por_origen_dict,
-        "viajes_por_destino": viajes_por_destino_dict,
-        "viajes_acumulados": total_anual,
-        "viajes_mes_actual": viajes_mes_actual,
-        "porcentaje_mes": porcentaje_mes,
-        "meses_labels": meses_labels,
-        "viajes_values": viajes_values,
-        "promedio_lunes_viernes": round(promedio_lunes_viernes, 0),
-        "promedio_fin_semana": round(promedio_fin_semana, 0),
-        "variacion_lv": variacion_lv,
-        "variacion_fs": variacion_fs,
-        # 🚲 Nuevos datos de análisis
-        "bicicletas_usadas": bicicletas_usadas,
-        "viajes_mes": viajes_mes,
-        "promedio_viajes_por_bici": round(promedio_viajes_por_bici, 1),
-        "tabla_ultimo_uso": tabla_ultimo_uso,
+        "viajes_por_origen": viajes_por_origen,
+        "viajes_por_destino": viajes_por_destino,
+        "meses_labels": viajes_por_mes['Mes'].tolist(),
+        "viajes_values": viajes_por_mes['viajes'].tolist(),
+        "estaciones_origen": estaciones_origen,
+        "estacion_seleccionada": estacion_filtro,
     }
 
-    return render(request, "inicio/usuarios.html", render_context)
-
+    return render(request, "inicio/usuarios.html", context)
 
 ####################################################################################################################
 ####################################   FIN DE - MOSTRAR_USUARIOS   #################################################
 ####################################################################################################################
 
-####################################################################################################################
-####################################   VIAJES MENSUALES - GRAFICOS  ################################################
-####################################################################################################################
+
 
 
 
 ####################################################################################################################
-####################################  FIN DE VIAJES MENSUALES - GRAFICOS  ##########################################
+####################################   PROCESADO - DESCARGAS  ######################################################
+####################################################################################################################
+
+
+def descargar_viajes_por_estacion(request):
+    estacion = request.GET.get("estacion")
+
+    
+    # 🔹 Cargar el dataset base de viajes
+    # ⚠️ PONÉ ACÁ LA MISMA LECTURA que usás en mostrar_usuarios
+    usuarios = pd.read_csv("data_viajes.csv", encoding="latin-1")
+    ruta_csv = os.path.join(settings.BASE_DIR, "data", "viajes.csv")
+
+    # 🔹 Filtro opcional por estación
+    if estacion and estacion != "None":
+        usuarios = usuarios[usuarios["Nombre_Inicio_Viaje"] == estacion]
+
+    # 🔹 Agrupar cantidad de viajes por estación
+    viajes_por_estacion = (
+        usuarios.groupby("Nombre_Inicio_Viaje")["ID_Viaje"]
+        .count()
+        .reset_index(name="cantidad_viajes")
+        .sort_values("cantidad_viajes", ascending=False)
+    )
+
+    # 🔹 Generar CSV en memoria (sin archivo físico)
+    response = HttpResponse(content_type="text/csv")
+    response["Content-Disposition"] = 'attachment; filename="viajes_por_estacion.csv"'
+
+    viajes_por_estacion.to_csv(response, index=False, encoding="utf-8")
+
+    return response
+
+
+####################################################################################################################
+####################################  FIN DE PROCESADO - DESCARGAS  ################################################
 ####################################################################################################################
 
 
@@ -712,6 +647,10 @@ def dashboard(request):
 
     return render(request, 'inicio/motivos.html', context)
 
+
+
+
+
 # ================================================== AGRUPAR POR MES ==================================================
 
 
@@ -818,6 +757,20 @@ def descargar_ultimo_uso(request):
 
     # --- Cargar CSV a pandas ---
     usuarios = pd.read_csv(file_stream, encoding="latin-1", sep="\t")
+
+    print("COLUMNAS DEL CSV:")
+    print(usuarios.columns.tolist())
+
+    # normalizar nombres
+    usuarios.columns = usuarios.columns.str.strip()
+
+    # buscar cualquier columna relacionada a bicicleta
+    col_bici = next(
+        (c for c in usuarios.columns if 'bici' in c.lower() or 'bike' in c.lower() or 'msnbc' in c.lower()),
+        None
+    )
+
+    print("Columna de bicicleta detectada:", col_bici)
 
     # --- Asegurar tipo de fecha ---
     usuarios['Fecha_Inicio'] = pd.to_datetime(usuarios['Fecha_Inicio'], errors='coerce')

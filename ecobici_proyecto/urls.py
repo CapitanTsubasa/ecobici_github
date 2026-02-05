@@ -27,4 +27,5 @@ urlpatterns = [
     path("grafico_productos/", views.grafico_productos, name="grafico_productos"),
     # 🆕 Nueva ruta para descargar el CSV
     path('descargar_ultimo_uso/', views.descargar_ultimo_uso, name='descargar_ultimo_uso'),
+    path('usuarios/descargar-estaciones/', views.descargar_viajes_por_estacion, name='descargar_viajes_por_estacion'),
 ]
