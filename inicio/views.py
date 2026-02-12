@@ -13,6 +13,7 @@ from io import BytesIO
 from googleapiclient.discovery import build
 from google.oauth2 import service_account
 from googleapiclient.http import MediaIoBaseDownload
+from googleapiclient.discovery import build
 
 from django.shortcuts import render
 from django.conf import settings
@@ -221,31 +222,84 @@ def mostrar_usuarios(request):
 
 
 def descargar_viajes_por_estacion(request):
-    estacion = request.GET.get("estacion")
 
-    
-    # 🔹 Cargar el dataset base de viajes
-    # ⚠️ PONÉ ACÁ LA MISMA LECTURA que usás en mostrar_usuarios
-    usuarios = pd.read_csv("data_viajes.csv", encoding="latin-1")
-    ruta_csv = os.path.join(settings.BASE_DIR, "data", "viajes.csv")
+    # ==============================
+    # 🔐 Conexión a Google Drive
+    # ==============================
+    scopes = ['https://www.googleapis.com/auth/drive']
 
-    # 🔹 Filtro opcional por estación
-    if estacion and estacion != "None":
-        usuarios = usuarios[usuarios["Nombre_Inicio_Viaje"] == estacion]
+    rutas = [
+        r'C:\Users\27384244926\Documents\Python_GIT\python_bicis\python_bicis\client.json',
+        r'F:\python_bicis\python_bicis\client.json',
+        r'c:\Users\20349069890\python_bicis\client.json',
+        r'c:\Users\20349069890\ecobici_github\client.json'
+    ]
 
-    # 🔹 Agrupar cantidad de viajes por estación
-    viajes_por_estacion = (
-        usuarios.groupby("Nombre_Inicio_Viaje")["ID_Viaje"]
-        .count()
-        .reset_index(name="cantidad_viajes")
-        .sort_values("cantidad_viajes", ascending=False)
+    key_path = next((ruta for ruta in rutas if os.path.exists(ruta)), None)
+    if not key_path:
+        return HttpResponse("No se encontró client.json", status=500)
+
+    credentials = service_account.Credentials.from_service_account_file(
+        key_path, scopes=scopes
     )
 
-    # 🔹 Generar CSV en memoria (sin archivo físico)
+    drive_service = build('drive', 'v3', credentials=credentials)
+
+    # ==============================
+    # 📂 Buscar archivo en Drive
+    # ==============================
+    folder_id = '15VrRfhgGQdVeOpD2Q_BD2287WCFWif8d'
+    target_file_name = 'Bicicletas_acumulado_procesado_2025.csv'
+
+    query = f"name='{target_file_name}' and '{folder_id}' in parents"
+    results = drive_service.files().list(q=query, fields="files(id, name)").execute()
+    files = results.get('files', [])
+
+    if not files:
+        return HttpResponse("Archivo no encontrado en Drive", status=404)
+
+    file_id = files[0]['id']
+
+    # ==============================
+    # ⬇️ Descargar archivo en memoria
+    # ==============================
+    request_drive = drive_service.files().get_media(fileId=file_id)
+    file_stream = BytesIO()
+    downloader = MediaIoBaseDownload(file_stream, request_drive)
+
+    done = False
+    while not done:
+        status, done = downloader.next_chunk()
+
+    file_stream.seek(0)
+
+    # ==============================
+    # 📊 Leer CSV en pandas
+    # ==============================
+    #df = pd.read_csv(file_stream, encoding="utf-8", sep="\t")
+    df = pd.read_csv(file_stream, sep="\t", encoding="latin-1",   # <- lectura segura (no rompe nunca)
+    on_bad_lines="skip")   # <- evita que una fila corrupta rompa todo
+
+    for col in df.select_dtypes(include="object").columns:
+        df[col] = df[col].str.encode("latin-1", errors="ignore").str.decode("utf-8", errors="ignore")
+
+    # ==============================
+    # 🚲 Agrupar viajes por estación
+    # ==============================
+    viajes_por_estacion = (
+        df.groupby("Nombre_Inicio_Viaje")
+        .size()
+        .reset_index(name="Cantidad_de_viajes")
+        .sort_values("Cantidad_de_viajes", ascending=False)
+    )
+
+    # ==============================
+    # 📥 Generar descarga CSV
+    # ==============================
     response = HttpResponse(content_type="text/csv")
     response["Content-Disposition"] = 'attachment; filename="viajes_por_estacion.csv"'
 
-    viajes_por_estacion.to_csv(response, index=False, encoding="utf-8")
+    viajes_por_estacion.to_csv(response, index=False, encoding="utf-8-sig")
 
     return response
 

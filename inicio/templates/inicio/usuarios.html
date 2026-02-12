@@ -11,6 +11,14 @@
 
 
 <div style="display: flex; justify-content: space-around; flex-wrap: wrap;">
+
+    <div style="width: 30%;">
+        <a href="{% url 'descargar_viajes_por_estacion' %}?estacion={{ estacion_seleccionada }}"
+            class="btn btn-success">
+            Descargar CSV estaciones
+        </a>
+    </div>
+
     <div style="width: 30%;">
         <h3>Viajes por Origen (Top 10)</h3>
         <canvas id="graficoOrigen"></canvas>
@@ -55,11 +63,12 @@
     </script>
     </div>
 
-    <a href="{% url 'descargar_viajes_por_estacion' %}?estacion={{ estacion_seleccionada }}"
-        class="btn btn-success">
-        Descargar CSV estaciones
-    </a>
-
+    <div style="width: 30%;">
+        <a href="{% url 'descargar_viajes_por_estacion' %}?estacion={{ estacion_seleccionada }}"
+            class="btn btn-success">
+            Descargar CSV estaciones
+        </a>
+    </div>
 
     <div style="width: 30%;">
         <h3>Viajes por Destino (Top 20)</h3>
