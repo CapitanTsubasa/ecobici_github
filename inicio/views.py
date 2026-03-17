@@ -561,7 +561,7 @@ def dashboard(request):
     casos_robada = df_filtrado[df_filtrado['ESTADO ACTUALIZADO'].isin(['ROBADA', 'ROBADA - RECUPERADA'])].shape[0]
     casos_robada_recuperada = df_filtrado[df_filtrado['ESTADO ACTUALIZADO'] == 'ROBADA - RECUPERADA'].shape[0]
     comisaria = df_filtrado[df_filtrado['ESTADO ACTUALIZADO'] == 'COMISARIA'].shape[0]
-    vandalismo_total = df_filtrado[df_filtrado['MOTIVO'].isin(['VANDALISMO-AWOL', 'VANDALISMO FALSA OPERATIVA', 'VANDALISMO FALSA NO ESTA ASEGURADA', 'VANDALISMO PINO CORTADO', 'VANDALISMO-DOCK'])].shape[0]
+    vandalismo_total = df_filtrado[df_filtrado['MOTIVO'].isin(['BICICLETA VANDALIZADA', 'VANDALISMO PINO CORTADO', 'VANDALISMO-DOCK'])].shape[0]
 
     # ======== LISTAS PARA SELECTORES =========
     meses_unicos = sorted(df['MES'].dropna().unique(), reverse=True)
