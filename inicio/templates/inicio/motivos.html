@@ -3,25 +3,78 @@
 {% block content %}
 
   <h1>PREVENCION DE PERDIDAS - STATUS GENERAL</h1>
-  
+
+
 <!--
   <form method="GET" action="">
     <label><strong>Fecha exacta:</strong></label>
     <input type="date" name="fecha" value="{{ fecha_actual }}" onchange="this.form.submit()">
 -->
     
-    <form method="get" style="display: inline-block;">
-        <label><strong>Mes:</strong></label>
+<form method="get" id="form-filtro">
+<div style="background: white; border: 1px solid #dee2e6; border-radius: 10px; padding: 1.25rem; display: flex; gap: 24px; align-items: flex-start; flex-wrap: wrap;">
 
-        <select name="mes" onchange="this.form.submit()" class="form-select">
-            <option value="">Todos</option>
-            {% for m in meses_unicos %}
-                <option value="{{ m }}" {% if m == mes_actual %}selected{% endif %}>
-                    {{ m }}
-                </option>
-            {% endfor %}
-        </select>
-    </form>
+    <!-- AÑO -->
+    <div>
+      <div class="filtro-label">Año</div>
+      <div class="d-flex gap-2">
+        {% for a in años_unicos %}
+          <button type="button"
+            class="btn-filtro-año {% if a == año_actual %}activo{% endif %}"
+            onclick="selAño(this, {{ a }})">
+            {{ a }}
+          </button>
+        {% endfor %}
+        <button type="button"
+          class="btn-filtro-año {% if not año_actual %}activo{% endif %}"
+          onclick="selAño(this, '')">
+          Todos
+        </button>
+      </div>
+    </div>
+
+    <div style="width:1px; background:#dee2e6; align-self:stretch;"></div>
+
+    <!-- MES -->
+    <div>
+      <div class="filtro-label">Mes</div>
+      <div class="d-flex gap-1 flex-wrap">
+        <button type="button"
+          class="btn-filtro-mes {% if not mes_actual %}activo{% endif %}"
+          onclick="selMes(this, '')">
+          Todos
+        </button>
+        {% for num, nombre in meses_nombres %}
+          <button type="button"
+            class="btn-filtro-mes {% if num == mes_actual %}activo{% endif %}"
+            onclick="selMes(this, {{ num }})">
+            {{ nombre }}
+          </button>
+        {% endfor %}
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Inputs ocultos que viajan con el GET -->
+  <input type="hidden" name="mes" id="input-mes" value="{{ mes_actual }}">
+  <input type="hidden" name="año" id="input-año" value="{{ año_actual }}">
+</form>
+
+<script>
+function selAño(btn, val) {
+  document.querySelectorAll('.btn-filtro-año').forEach(b => b.classList.remove('activo'));
+  btn.classList.add('activo');
+  document.getElementById('input-año').value = val;
+  document.getElementById('form-filtro').submit();
+}
+function selMes(btn, val) {
+  document.querySelectorAll('.btn-filtro-mes').forEach(b => b.classList.remove('activo'));
+  btn.classList.add('activo');
+  document.getElementById('input-mes').value = val;
+  document.getElementById('form-filtro').submit();
+}
+</script>
 
 <!--    <button class="btn btn-primary" type="submit">
     <button class="btn btn-primary" type="submit">
@@ -50,7 +103,7 @@
   <!-- BARRA 1 -->
   <div style="display: flex; gap: 20px; margin-bottom: 20px;">
       <!-- EN ESPERA -->
-      <div style="background-color: #f59700ff; color: white; padding: 15px; width: 200px; 
+      <div style="background-color: rgb(245, 229, 0); color: white; padding: 15px; width: 200px; 
                   text-align: center; border-radius: 10px;">
           <strong>DESAPARECIDAS ACTUALES</strong><br>
           <span style="font-size: 24px;">{{ casos_espera }}</span>
@@ -194,7 +247,7 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <div id="map"
-        style="height: 500px; width: 100%; border-radius: 12px; margin-top: 60px; margin-left: auto; margin-right: auto;">
+        style="height: 500px; width: 500px; border-radius: 12px; margin-top: 60px; margin-left: auto; margin-right: auto;">
     </div>
 
     <script>

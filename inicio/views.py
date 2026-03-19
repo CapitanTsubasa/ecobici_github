@@ -15,6 +15,8 @@ from google.oauth2 import service_account
 from googleapiclient.http import MediaIoBaseDownload
 from googleapiclient.discovery import build
 
+from datetime import date
+
 from django.shortcuts import render
 from django.conf import settings
 from django.http import HttpResponse
@@ -557,9 +559,9 @@ def dashboard(request):
     conteo_vandalismo['mes'] = conteo_vandalismo['FECHA DE VIAJE'].astype(str)
 
     # CONTADORES
-    casos_espera = df_filtrado[df_filtrado['ESTADO ACTUALIZADO'] == 'A LA ESPERA'].shape[0]
-    casos_robada = df_filtrado[df_filtrado['ESTADO ACTUALIZADO'].isin(['ROBADA', 'ROBADA - RECUPERADA'])].shape[0]
-    casos_robada_recuperada = df_filtrado[df_filtrado['ESTADO ACTUALIZADO'] == 'ROBADA - RECUPERADA'].shape[0]
+    casos_espera = df_filtrado[df_filtrado['ESTADO ACTUALIZADO'] == 'DESAPARECIDA'].shape[0]
+    casos_robada = df_filtrado[df_filtrado['ESTADO ACTUALIZADO'].isin(['ROBADA', 'RECUPERACION POR ROBO'])].shape[0]
+    casos_robada_recuperada = df_filtrado[df_filtrado['ESTADO ACTUALIZADO'] == 'RECUPERACION POR ROBO'].shape[0]
     comisaria = df_filtrado[df_filtrado['ESTADO ACTUALIZADO'] == 'COMISARIA'].shape[0]
     vandalismo_total = df_filtrado[df_filtrado['MOTIVO'].isin(['BICICLETA VANDALIZADA', 'VANDALISMO PINO CORTADO', 'VANDALISMO-DOCK'])].shape[0]
 
@@ -613,7 +615,7 @@ def dashboard(request):
     #    ]
 
     df_recuperos = df[
-        (df['ESTADO ACTUALIZADO'] == 'ROBADA - RECUPERADA') &
+        (df['ESTADO ACTUALIZADO'] == 'RECUPERACION POR ROBO') &
         (df['FECHA RECUPERADA'].notna())
     ].copy()
 
@@ -640,7 +642,7 @@ def dashboard(request):
     df_mapa = df[
         df['lat'].notna() &
         df['lng'].notna() &
-        df['ESTADO ACTUALIZADO'].isin(['ROBADA', 'ROBADA - RECUPERADA'])
+        df['ESTADO ACTUALIZADO'].isin(['ROBADA', 'RECUPERACION POR ROBO'])
     ].copy()
 
     puntos_gps = df_mapa[['lat', 'lng']].to_dict(orient='records')
@@ -702,10 +704,48 @@ def dashboard(request):
     return render(request, 'inicio/motivos.html', context)
 
 
+# ==================================================================================================================
+# ================================================== MOTIVOS_VIEW ==================================================
+# ==================================================================================================================
 
 
+def motivos_view(request):
+    # ... tu código existente de carga del df ...
 
-# ================================================== AGRUPAR POR MES ==================================================
+    hoy = date.today()
+
+    # Parámetros GET
+    mes_param  = request.GET.get('mes', str(hoy.month))
+    año_param  = request.GET.get('año', str(hoy.year))
+
+    mes_actual = int(mes_param)  if mes_param  else None
+    año_actual = int(año_param)  if año_param  else None
+
+    # Filtrar el DataFrame
+    df_filtrado = df.copy()
+    if año_actual:
+        df_filtrado = df_filtrado[df_filtrado['fecha_col'].dt.year == año_actual]
+    if mes_actual:
+        df_filtrado = df_filtrado[df_filtrado['fecha_col'].dt.month == mes_actual]
+
+    # Años disponibles (para los botones)
+    años_unicos = sorted(df['fecha_col'].dt.year.dropna().unique().astype(int), reverse=True)
+
+    # Nombres de mes para los botones
+    MESES = [(1,'Ene'),(2,'Feb'),(3,'Mar'),(4,'Abr'),(5,'May'),(6,'Jun'),
+             (7,'Jul'),(8,'Ago'),(9,'Sep'),(10,'Oct'),(11,'Nov'),(12,'Dic')]
+
+    context = {
+        'mes_actual':  mes_actual,
+        'año_actual':  año_actual,
+        'años_unicos': años_unicos,
+        'meses_nombres': MESES,
+        # ... resto de tu contexto ...
+    }
+    return render(request, 'motivos.html', context)
+
+
+# ================================================== FIN DE MOTIVOS_VIEW ==================================================
 
 
 def agrupar_por_mes(df, columna_fecha):

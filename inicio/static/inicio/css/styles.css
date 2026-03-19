@@ -1,5 +1,12 @@
 /* Estilos para el botón de menú hamburguesa */
 
+.filtro-label { font-size: 11px; color: #6c757d; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+.btn-filtro-año, .btn-filtro-mes { padding: 5px 14px; border: 1px solid #dee2e6; border-radius: 6px; background: transparent; color: #212529; font-size: 13px; cursor: pointer; }
+.btn-filtro-año:hover, .btn-filtro-mes:hover { background: #f8f9fa; }
+.btn-filtro-año.activo { border-color: #185FA5; color: #185FA5; font-weight: 500; }
+.btn-filtro-mes.activo { background: #185FA5; border-color: #185FA5; color: white; font-weight: 500; }
+
+
 #checkbox {
   display: none;
 }
