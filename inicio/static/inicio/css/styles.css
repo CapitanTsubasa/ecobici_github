@@ -124,6 +124,10 @@ body {
 .navbar {
   width: 100%;
   background: #919191;
+  justify-content: center;
+  align-items: center;
+  box-shadow: rgba(151, 65, 252, 0.2) 0 15px 30px -5px; 
+  background-image: linear-gradient(144deg,#AF40FF, #5B42F3 50%,#00DDEB);
 }
 
 .navbar a {
@@ -333,4 +337,84 @@ body {
   border-radius: 17px;
   width: 100%;
   height: 100%;
+}
+
+/* ---------------------Nuevos Styles---------------------- */
+
+
+
+body {
+    font-family: Arial, sans-serif;
+    background: #f2f2f2;
+    margin: 0;
+}
+
+.header {
+    background: #0b2c4a;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    padding: 15px 30px;
+}
+
+.kpis {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin: 20px;
+}
+
+.kpi {
+    padding: 15px;
+    border-radius: 20px;
+    color: white;
+    font-weight: bold;
+}
+
+.kpi span {
+    float: right;
+    font-size: 20px;
+}
+
+.red { background: #b71c1c; }
+.gray { background: #9e9e9e; }
+.yellow { background: #fbc02d; color: #333; }
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    margin: 20px;
+}
+
+.panel {
+    background: white;
+    border-radius: 15px;
+    padding: 15px;
+}
+
+#map {
+    height: 300px;
+}
+
+
+
+
+.charts-row {
+    display: flex;
+    gap: 20px;
+    width: 100%;
+    margin: 20px 0;
+}
+
+.chart-box {
+    width: 50%;
+    background: #fff;
+    padding: 15px;
+    border-radius: 12px;
+}
+
+.chart-box canvas {
+    width: 100% !important;
+    height: 320px !important;
 }

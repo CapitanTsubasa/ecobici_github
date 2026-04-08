@@ -661,6 +661,38 @@ def dashboard(request):
     print("Puntos GPS:", len(puntos_gps))
     print(df_mapa[['Ultima coordenada de GPS', 'lat', 'lng']].head())
 
+    #============================ GPS_ROBOS_ESTACIONES ============================
+
+
+    
+    df['LAT.LONG'] = (
+        df['LAT.LONG']
+            .astype(str)
+            .str.replace(';', ',', regex=False)
+            .str.replace(',', '.', n=1)   # decimal
+        )
+
+
+    
+    coords = df['LAT.LONG'].str.extract(
+        r'(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)'
+    )
+
+
+    df['lat'] = pd.to_numeric(coords[0], errors='coerce')
+    df['lng'] = pd.to_numeric(coords[1], errors='coerce')
+    
+    df_mapa = df[
+        df['lat'].notna() &
+        df['lng'].notna() &
+        df['ESTADO ACTUALIZADO'].isin(['ROBADA', 'RECUPERACION POR ROBO'])
+    ].copy()
+
+    puntos_gps_robos = df_mapa[['lat', 'lng']].to_dict(orient='records')
+
+    print("Puntos GPS robos:", len(puntos_gps_robos))
+    print(df_mapa[['LAT.LONG', 'lat', 'lng']].head())
+
     # ======== CONTEXTO =========
     context = {
         'conteno_motivos': conteo_motivos,
@@ -699,6 +731,7 @@ def dashboard(request):
 
     # ✅ MAPA
         'puntos_gps': json.dumps(puntos_gps),
+        'puntos_gps_robos': json.dumps(puntos_gps_robos)
     }
 
     return render(request, 'inicio/motivos.html', context)
