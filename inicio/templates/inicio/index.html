@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="{% static 'inicio/css/styles.css' %}">
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 </head>
 
 
@@ -21,6 +22,7 @@
   <a href="{% url 'motivos' %}" class="btn"><span>PP | DESAPARECIDAS</span></a>
   <a href="{% url 'usuarios' %}" class="btn"><span>USUARIOS</span></a>
   <a href="{% url 'grafico_productos' %}" class="btn"><span>ANÁLISIS DE PRODUCTOS</span></a>
+  <a href="{% url 'auditoria' %}" class="btn"><span>AUDITORÍA</span></a>
 </div>
 
 <!-- ICONOS DE REDES SOCIALES --> 

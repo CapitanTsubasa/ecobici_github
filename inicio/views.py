@@ -493,7 +493,7 @@ def dashboard(request):
 
     # ======== CAPTURAR FILTROS =========
     fecha_filtro = request.GET.get("fecha")   # YYYY-MM-DD
-    mes_filtro = request.GET.get("mes")       # YYYY-MM
+    mes_filtro = request.GET.getlist("mes")  # ✅ lista       # YYYY-MM
     dia_filtro = request.GET.get("dia")       # 0–6
 
     # ======== APLICAR FILTROS =========
@@ -506,7 +506,8 @@ def dashboard(request):
 
     # FILTRO POR MES
     if mes_filtro:
-        df_filtrado = df_filtrado[df_filtrado['MES'] == mes_filtro]
+        df_filtrado = df_filtrado[df_filtrado['MES'].isin(mes_filtro)]
+
 
     # FILTRO POR DÍA DE SEMANA
     if dia_filtro:
@@ -545,7 +546,6 @@ def dashboard(request):
     df['FECHA ROBADA'] = pd.to_datetime(df['FECHA ROBADA'], errors='coerce', dayfirst=True)
     df['FECHA RECUPERADA'] = pd.to_datetime(df['FECHA RECUPERADA'], errors='coerce', dayfirst=True)
 
-    mes_filtro = request.GET.get("mes")
 
     df_vandalismo = df_filtrado[
         df_filtrado['MOTIVO'].str.contains(r'\bVANDALISMO', na=False, regex=True)
@@ -566,7 +566,9 @@ def dashboard(request):
     vandalismo_total = df_filtrado[df_filtrado['MOTIVO'].isin(['BICICLETA VANDALIZADA', 'VANDALISMO PINO CORTADO', 'VANDALISMO-DOCK'])].shape[0]
 
     # ======== LISTAS PARA SELECTORES =========
-    meses_unicos = sorted(df['MES'].dropna().unique(), reverse=True)
+    meses_unicos = sorted([m for m in df['MES'].dropna().unique()
+        if m.startswith('2025-') or m.startswith('2026-')],reverse=True)
+
     dias_unicos = list(range(0, 7))
 
     # ============================
@@ -582,14 +584,17 @@ def dashboard(request):
     #conteo_robos_mes = agrupar_por_mes(df_robos, 'FECHA ROBADA')
 
     df_robos = df[
-        df['ESTADO ACTUALIZADO'].isin(['ROBADA', 'ROBADA - RECUPERADA']) &
+        df['ESTADO ACTUALIZADO'].isin(['ROBADA', 'RECUPERACION POR ROBO']) &
         df['FECHA ROBADA'].notna()
     ].copy()
 
     if mes_filtro:
         df_robos = df_robos[
-            df_robos['FECHA ROBADA'].dt.to_period('M').astype(str) == mes_filtro
-        ]
+            df_robos['FECHA ROBADA']
+                .dt.to_period('M')
+                .astype(str)
+                .isin(mes_filtro)
+    ]
 
     conteo_robos_mes = agrupar_por_mes(df_robos, 'FECHA ROBADA')
 
@@ -608,21 +613,19 @@ def dashboard(request):
 
     #conteo_recuperos_mes = agrupar_por_mes(df_recuperos, 'FECHA RECUPERADA')
 
-
-    #if mes_filtro:
-    #    df = df[
-    #        df['FECHA DE VIAJE'].dt.to_period('M').astype(str) == mes_filtro
-    #    ]
-
     df_recuperos = df[
         (df['ESTADO ACTUALIZADO'] == 'RECUPERACION POR ROBO') &
         (df['FECHA RECUPERADA'].notna())
     ].copy()
 
+    
     if mes_filtro:
         df_recuperos = df_recuperos[
-            df_recuperos['FECHA RECUPERADA'].dt.to_period('M').astype(str) == mes_filtro
-        ]
+            df_recuperos['FECHA RECUPERADA']
+                .dt.to_period('M')
+                .astype(str)
+                .isin(mes_filtro)
+    ]
 
     conteo_recuperos_mes = agrupar_por_mes(df_recuperos, 'FECHA RECUPERADA')
 
@@ -644,6 +647,16 @@ def dashboard(request):
         df['lng'].notna() &
         df['ESTADO ACTUALIZADO'].isin(['ROBADA', 'RECUPERACION POR ROBO'])
     ].copy()
+
+    
+    if mes_filtro:
+        df_mapa = df_mapa[
+            df_mapa['FECHA DE VIAJE']
+                .dt.to_period('M')
+                .astype(str)
+                .isin(mes_filtro)
+    ]
+
 
     puntos_gps = df_mapa[['lat', 'lng']].to_dict(orient='records')
 
@@ -924,3 +937,10 @@ def descargar_ultimo_uso(request):
 
 
     return response
+
+
+# ================================================== PROBANDO DASHBOARD DE AUDITORIA ========================================
+
+
+def auditoria(request):
+    return render(request, "inicio/auditoria.html")

@@ -16,11 +16,12 @@
     <label><strong>Fecha exacta:</strong></label>
     <input type="date" name="fecha" value="{{ fecha_actual }}" onchange="this.form.submit()">
 -->
-    
+
+<!-- PRUEBA BARRA  
 <form method="get" id="form-filtro">
 <div style="background: white; border: 1px solid #dee2e6; border-radius: 10px; padding: 1.25rem; display: flex; gap: 24px; align-items: flex-start; flex-wrap: wrap;">
 
-    <!-- AÑO -->
+    AÑO
     <div>
       <div class="filtro-label">Año</div>
       <div class="d-flex gap-2">
@@ -41,26 +42,48 @@
 
     <div style="width:1px; background:#dee2e6; align-self:stretch;"></div>
 
-    <!-- MES -->
-    <div>
-      <div class="filtro-label">Mes</div>
-      <div class="d-flex gap-1 flex-wrap">
-        <button type="button"
-          class="btn-filtro-mes {% if not mes_actual %}activo{% endif %}"
-          onclick="selMes(this, '')">
-          Todos
-        </button>
-        {% for num, nombre in meses_nombres %}
-          <button type="button"
-            class="btn-filtro-mes {% if num == mes_actual %}activo{% endif %}"
-            onclick="selMes(this, {{ num }})">
-            {{ nombre }}
-          </button>
-        {% endfor %}
-      </div>
-    </div>
+    
+    MES
+        <div>
+        <div class="filtro-label">Mes</div>
+        <div class="d-flex gap-2">
+            {% for m in meses_unicos %}
+            <button type="button"
+                class="btn-filtro-mes {% if m == mes_actual %}activo{% endif %}"
+                onclick="selMes(this, '{{ m }}')">
+                {{ m }}
+            </button>
+            {% endfor %}
 
+            <button type="button"
+                class="btn-filtro-mes {% if not mes_actual %}activo{% endif %}"
+                onclick="selMes(this, '')">
+                Todos
+            </button>
+        </div>
+        </div>
+</div>
+-->
+
+<form method="get" id="form-filtro">
+
+  <div class="radio-input">
+    {% for m in meses_unicos %}
+      <label class="label">
+        <input
+          type="checkbox"
+          name="mes"
+          value="{{ m }}"
+          {% if m in mes_actual %}checked{% endif %}
+          onchange="document.getElementById('form-filtro').submit()"
+        />
+        <span class="text">{{ m }}</span>
+      </label>
+    {% endfor %}
   </div>
+
+</form>
+
 
   <!-- Inputs ocultos que viajan con el GET -->
   <input type="hidden" name="mes" id="input-mes" value="{{ mes_actual }}">

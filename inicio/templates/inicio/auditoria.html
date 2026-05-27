@@ -1,0 +1,153 @@
+
+{% extends 'inicio/index.html' %}
+{% load static %}
+
+{% block content %}
+
+<div class="topbar">
+  <span class="topbar-logo">EcoBici</span>
+  <div class="topbar-sep"></div>
+  <span class="topbar-title">Auditoría de Estaciones · GOB</span>
+  <div class="topbar-right">
+    <span class="badge badge-green" id="badge-periodo" style="display:none"></span>
+    <span class="badge badge-blue" id="badge-semanas" style="display:none"></span>
+  </div>
+</div>
+
+<!-- ✅ UPLOAD SCREEN -->
+<div style="padding:20px 24px">
+  <div id="upload-screen">
+    
+    <!-- TODO este bloque VA COMPLETO -->
+    <div style="text-align:center">
+      <div style="font-size:22px;font-weight:500">
+        Cargá los dos archivos para comenzar
+      </div>
+      <div style="color:var(--muted);font-size:14px;margin-top:6px">
+        Ambos son necesarios para ver el mapa y la cobertura
+      </div>
+    </div>
+
+    <div class="topbar">
+  <span class="topbar-logo">EcoBici</span>
+  <div class="topbar-sep"></div>
+  <span class="topbar-title">Auditoría de Estaciones · GOB</span>
+  <div class="topbar-right">
+    <span class="badge badge-green" id="badge-periodo" style="display:none"></span>
+    <span class="badge badge-blue"  id="badge-semanas" style="display:none"></span>
+  </div>
+</div>
+
+<div style="padding:20px 24px">
+<div id="upload-screen">
+  <div style="text-align:center">
+    <div style="font-size:22px;font-weight:500">Cargá los dos archivos para comenzar</div>
+    <div style="color:var(--muted);font-size:14px;margin-top:6px">Ambos son necesarios para ver el mapa y la cobertura</div>
+  </div>
+  <div class="upload-cards">
+    <div class="upload-card" id="dz-logistica">
+      <input type="file" id="input-logistica" accept=".csv,.txt"/>
+      <div class="uc-icon">📋</div>
+      <div class="uc-title">logistica.csv</div>
+      <div class="uc-desc">Movimientos auditores GOB</div>
+      <div class="uc-cols">Apellido de ciclista<br>Nombre de ciclista<br>Fecha de inicio<br>Id / Nombre de estación inicio/fin</div>
+      <div class="uc-status" id="status-logistica">Arrastrá o hacé clic</div>
+    </div>
+    <div class="upload-card" id="dz-estaciones">
+      <input type="file" id="input-estaciones" accept=".csv,.txt"/>
+      <div class="uc-icon">🗺️</div>
+      <div class="uc-title">estaciones.csv</div>
+      <div class="uc-desc">Coordenadas y total de docks</div>
+      <div class="uc-cols">Id · Name<br>Total de Anclajes<br>Latitude · Longitude<br>BARRIO</div>
+      <div class="uc-status" id="status-estaciones">Arrastrá o hacé clic</div>
+    </div>
+  </div>
+  <div class="upload-progress">
+    <div class="progress-bar-wrap"><div class="progress-bar-fill" id="progress-fill" style="width:0%"></div></div>
+    <div class="progress-label" id="progress-label">0 / 2 archivos cargados</div>
+  </div>
+</div>
+</div>
+
+<div id="app" class="main">
+  <div class="kpi-strip">
+    <div class="kpi-card"><div class="kpi-label">Movimientos GOB</div><div class="kpi-value kpi-green" id="kpi-total">—</div><div class="kpi-sub" id="kpi-period-sub">período</div></div>
+    <div class="kpi-card"><div class="kpi-label">Estaciones auditadas</div><div class="kpi-value kpi-blue" id="kpi-stations">—</div><div class="kpi-sub" id="kpi-week-sub">semana activa</div></div>
+    <div class="kpi-card"><div class="kpi-label">Auditores activos</div><div class="kpi-value kpi-warn" id="kpi-auditors">—</div><div class="kpi-sub">en la semana</div></div>
+    <div class="kpi-card"><div class="kpi-label">Cobertura promedio</div><div class="kpi-value kpi-white" id="kpi-coverage">—</div><div class="kpi-sub" id="kpi-cov-sub">% docks auditados</div></div>
+    <div class="kpi-card"><div class="kpi-label">Sin auditar</div><div class="kpi-value kpi-red" id="kpi-unvisited">—</div><div class="kpi-sub" id="kpi-unvisited-sub">estaciones</div></div>
+  </div>
+  <div class="content-grid">
+    <div class="map-panel">
+      <div class="map-panel-header">
+        <h3>Mapa de estaciones</h3>
+        <span class="badge badge-blue" id="map-week-label">—</span>
+      </div>
+      <div id="map"></div>
+      <div class="map-legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#1db954"></div>≥75%</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#f59e0b"></div>40–74%</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#ef4444"></div>&lt;40% / sin auditar</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#8b949e"></div>Sin datos</div>
+      </div>
+    </div>
+    <div>
+      <div class="section-label" style="margin-top:0">Auditores · semana activa</div>
+      <div class="auditor-grid" id="auditor-grid"></div>
+      <div class="week-tabs" id="week-tabs"></div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:-8px;margin-bottom:12px">
+        Click: selección única &nbsp;·&nbsp; Click en activa: seleccionar todas &nbsp;·&nbsp; Shift+Click: sumar semana
+      </div>
+      <div class="controls">
+        <span class="ctrl-label">Buscar:</span>
+        <input type="text" id="search-input" placeholder="Estación o auditor…"/>
+        <span class="ctrl-label" style="margin-left:6px">Auditor:</span>
+        <select id="auditor-filter"><option value="">Todos</option></select>
+        <span class="ctrl-label" style="margin-left:6px">Orden:</span>
+        <select id="sort-select">
+          <option value="docks_desc">Docks ↓</option>
+          <option value="docks_asc">Docks ↑</option>
+          <option value="pct_desc">Cobertura % ↓</option>
+          <option value="pct_asc">Cobertura % ↑</option>
+          <option value="name_asc">Estación A–Z</option>
+          <option value="diff_desc">Mayor diferencia ↓</option>
+        </select>
+      </div>
+      <div class="table-wrap">
+        <div class="table-header-row">
+          <h3>Estaciones auditadas</h3>
+          <span class="table-count" id="table-count">—</span>
+        </div>
+        <table>
+          <thead><tr>
+            <th style="width:210px">Estación</th>
+            <th style="width:210px">Auditores / Fechas</th>
+            <th style="text-align:right;width:140px">Auditados / Total</th>
+            <th style="width:160px">Cobertura</th>
+          </tr></thead>
+          <tbody id="main-tbody"></tbody>
+        </table>
+        <div class="state-msg hidden" id="empty-msg"><div class="ico">🔍</div>Sin estaciones para los filtros aplicados.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+  </div>
+</div>
+
+<!-- ✅ APP (mapa + tabla + KPIs) -->
+<div id="app" class="main">
+
+  <!-- TODO este bloque TAMBIÉN VA COMPLETO -->
+  <!-- KPIs + mapa + tabla -->
+
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="{% static 'inicio/js/app.js' %}"></script>
+{% endblock %}
+``

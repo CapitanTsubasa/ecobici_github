@@ -28,4 +28,5 @@ urlpatterns = [
     # 🆕 Nueva ruta para descargar el CSV
     path('descargar_ultimo_uso/', views.descargar_ultimo_uso, name='descargar_ultimo_uso'),
     path('usuarios/descargar-estaciones/', views.descargar_viajes_por_estacion, name='descargar_viajes_por_estacion'),
+    path('auditoria/', views.auditoria, name='auditoria'),
 ]
