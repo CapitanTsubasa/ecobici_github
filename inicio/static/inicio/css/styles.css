@@ -425,7 +425,7 @@ body {
   display: flex;
   align-items: center;
   gap: 2px;
-  background-color: black;
+  background-color: rgb(0, 0, 0);
   padding: 4px;
   border-radius: 10px;
 }

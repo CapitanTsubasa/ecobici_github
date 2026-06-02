@@ -558,9 +558,24 @@ def dashboard(request):
     )
     conteo_vandalismo['mes'] = conteo_vandalismo['FECHA DE VIAJE'].astype(str)
 
+    df_robos = df[
+        df['ESTADO ACTUALIZADO'].isin(['ROBADA', 'RECUPERACION POR ROBO']) &
+        df['FECHA ROBADA'].notna()
+    ].copy()
+
+    if mes_filtro:
+        df_robos = df_robos[
+            df_robos['FECHA ROBADA']
+                .dt.to_period('M')
+                .astype(str)
+                .isin(mes_filtro)
+    ]
+
+    conteo_robos_mes = agrupar_por_mes(df_robos, 'FECHA ROBADA')
+
     # CONTADORES
     casos_espera = df_filtrado[df_filtrado['ESTADO ACTUALIZADO'] == 'DESAPARECIDA'].shape[0]
-    casos_robada = df_filtrado[df_filtrado['ESTADO ACTUALIZADO'].isin(['ROBADA', 'RECUPERACION POR ROBO'])].shape[0]
+    casos_robada = df_robos.shape[0]
     casos_robada_recuperada = df_filtrado[df_filtrado['ESTADO ACTUALIZADO'] == 'RECUPERACION POR ROBO'].shape[0]
     comisaria = df_filtrado[df_filtrado['ESTADO ACTUALIZADO'] == 'COMISARIA'].shape[0]
     vandalismo_total = df_filtrado[df_filtrado['MOTIVO'].isin(['BICICLETA VANDALIZADA', 'VANDALISMO PINO CORTADO', 'VANDALISMO-DOCK'])].shape[0]
@@ -583,20 +598,7 @@ def dashboard(request):
     #conteo_mes = agrupar_por_mes(df_filtrado, 'FECHA DE VIAJE')
     #conteo_robos_mes = agrupar_por_mes(df_robos, 'FECHA ROBADA')
 
-    df_robos = df[
-        df['ESTADO ACTUALIZADO'].isin(['ROBADA', 'RECUPERACION POR ROBO']) &
-        df['FECHA ROBADA'].notna()
-    ].copy()
-
-    if mes_filtro:
-        df_robos = df_robos[
-            df_robos['FECHA ROBADA']
-                .dt.to_period('M')
-                .astype(str)
-                .isin(mes_filtro)
-    ]
-
-    conteo_robos_mes = agrupar_por_mes(df_robos, 'FECHA ROBADA')
+    
 
     # ============================
     # DATASET EXCLUSIVO DE RECUPEROS
@@ -666,45 +668,42 @@ def dashboard(request):
     #].copy()
         #df['ESTADO ACTUALIZADO'].isin(['ROBADA', 'ROBADA - RECUPERADA']) &
    
-
-    
-
     #context['puntos_gps'] = json.dumps(puntos_gps) PENDIENTE PARA ARREGLAR NO SE VE EL MAPA.
 
     print("Puntos GPS:", len(puntos_gps))
     print(df_mapa[['Ultima coordenada de GPS', 'lat', 'lng']].head())
 
     #============================ GPS_ROBOS_ESTACIONES ============================
+ 
+    # ============================
+    # MAPA ESTACIONES (LAT.LONG)
+    # ============================
 
-
-    
-    df['LAT.LONG'] = (
-        df['LAT.LONG']
-            .astype(str)
-            .str.replace(';', ',', regex=False)
-            .str.replace(',', '.', n=1)   # decimal
-        )
-
-
-    
-    coords = df['LAT.LONG'].str.extract(
-        r'(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)'
+    df_filtrado['LAT.LONG'] = (df_filtrado['LAT.LONG'].astype(str).str.replace(';', ',', regex=False).str.strip())
+      
+    coords_est = df_filtrado['LAT.LONG'].str.extract(
+        r'(-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?)'
     )
 
+    print("DEBUG LAT.LONG crudo:")
+    print(df_filtrado['LAT.LONG'].head(10))
 
-    df['lat'] = pd.to_numeric(coords[0], errors='coerce')
-    df['lng'] = pd.to_numeric(coords[1], errors='coerce')
-    
-    df_mapa = df[
-        df['lat'].notna() &
-        df['lng'].notna() &
-        df['ESTADO ACTUALIZADO'].isin(['ROBADA', 'RECUPERACION POR ROBO'])
+    df_filtrado['lat_est'] = pd.to_numeric(coords_est[0], errors='coerce')
+    df_filtrado['lng_est'] = pd.to_numeric(coords_est[1], errors='coerce')
+
+    df_mapa_estaciones = df_filtrado[
+        df_filtrado['lat_est'].notna() &
+        df_filtrado['lng_est'].notna() &
+        df_filtrado['ESTADO ACTUALIZADO'].isin(['ROBADA', 'RECUPERACION POR ROBO'])
     ].copy()
 
-    puntos_gps_robos = df_mapa[['lat', 'lng']].to_dict(orient='records')
+    puntos_gps_estaciones = df_mapa_estaciones[
+        ['lat_est', 'lng_est']
+    ].rename(columns={
+        'lat_est': 'lat',
+        'lng_est': 'lng'
+    }).to_dict(orient='records')
 
-    print("Puntos GPS robos:", len(puntos_gps_robos))
-    print(df_mapa[['LAT.LONG', 'lat', 'lng']].head())
 
     # ======== CONTEXTO =========
     context = {
@@ -744,7 +743,8 @@ def dashboard(request):
 
     # ✅ MAPA
         'puntos_gps': json.dumps(puntos_gps),
-        'puntos_gps_robos': json.dumps(puntos_gps_robos)
+        #'puntos_gps_robos': json.dumps(puntos_gps_robos)
+        'puntos_gps_estaciones': json.dumps(puntos_gps_estaciones),
     }
 
     return render(request, 'inicio/motivos.html', context)
