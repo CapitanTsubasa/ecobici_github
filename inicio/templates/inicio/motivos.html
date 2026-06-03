@@ -3,17 +3,17 @@
 {% block content %}
 
 <!-- TITULO -->
-
-<div style="display: flex; gap: 20px; margin-bottom: 20px; justify-content: center; align-items: center; box-shadow: rgba(151, 65, 252, 0.2) 0 15px 30px -5px; background-image: linear-gradient(144deg,#AF40FF, #5B42F3 50%,#00DDEB);">
-    <div style="
-        padding: 1rem; 
-        border-radius: 5px;
-        ">
-        <h1>PREVENCION DE PERDIDAS - DASHBOARD GENERAL</h1>
-    </div>
+<div style="display: flex; gap: 20px; margin-bottom: 20px; justify-content: center;
+ align-items: center; box-shadow: rgba(151, 65, 252, 0.2) 0 15px 30px -5px;
+  background-image: linear-gradient(144deg,#AF40FF, #4130b0 50%,#00DDEB);">
+    <h1>PREVENCION DE PERDIDAS - DASHBOARD GENERAL</h1>
 </div>
+
 <!-- FIN TITULO -->
-<!-- BARRA DE MES-AÑO -->
+
+
+
+<!-- BARRA DE MENU DE MESES -->
 
 <form method="get" id="form-filtro">
 
@@ -54,7 +54,7 @@ function selMes(btn, val) {
 }
 </script>
 
-<!-- FIN BARRA DE MES-AÑO -->
+<!-- FIN BARRA DE MENU DE MESES -->
 
 <!--    <button class="btn btn-primary" type="submit">
     <button class="btn btn-primary" type="submit">
@@ -86,13 +86,15 @@ function selMes(btn, val) {
         gap: 20px; 
         margin-bottom: 20px;
         justify-content: center;
+        padding: 10px;
+        margin: 10px auto;
         align-items: center;
         border-radius: 10px; 
         box-shadow: rgba(151, 65, 252, 0.2) 0 15px 30px -5px; 
         background-image: linear-gradient(144deg,#AF40FF, #0f0072 50%,#00DDEB);
     ">
         <!-- DESAPARECIDAS -->
-        <div style="background-color: rgb(148, 152, 38); color: white; padding: 15px; width: 200px; 
+        <div style="background-color: rgb(255, 153, 0); color: white; padding: 15px; width: 200px; 
                 text-align: center; border-radius: 10px;">
             <strong>DESAPARECIDAS</strong><br>
             <span style="font-size: 24px;">{{ casos_espera }}</span>
@@ -153,6 +155,7 @@ function selMes(btn, val) {
     </div>
 
 
+
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -160,8 +163,14 @@ function selMes(btn, val) {
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
 
     <script>
-    const ctxRobos = document.getElementById("graficoRobosMes");
     
+    const ctxRobos = document.getElementById("graficoRobosMes").getContext("2d");
+
+    // 🎨 Gradiente
+    const gradient = ctxRobos.createLinearGradient(0, 0, 0, 400);
+    gradient.addColorStop(0, "rgba(180, 0, 0, 0.4)");
+    gradient.addColorStop(1, "rgba(180, 0, 0, 0)");
+
     new Chart(ctxRobos, {
         type: 'line',
         data: {
@@ -169,35 +178,80 @@ function selMes(btn, val) {
             datasets: [{
                 label: 'Cantidad de robos',
                 data: {{ cant_robos|safe }},
-                backgroundColor: 'rgba(155, 153, 153, 0.6)',
+
+                // 🎨 estilo línea
                 borderColor: 'rgba(180, 0, 0, 1)',
-                borderWidth: 1
+                borderWidth: 2,
+                borderDash: [3, 3],         // 🔴 línea punteada
+
+                // 🎨 área
+                backgroundColor: gradient,
+                fill: true,
+
+                // 🎨 puntos
+                pointBackgroundColor: 'rgba(180, 0, 0, 1)',
+                pointBorderColor: '#fff',
+                pointRadius: 4,
+                pointHoverRadius: 6,
+
+                // 🎨 suavizado
+                tension: 0.4
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            scales: {
-                y: { beginAtZero: true }
-            },
+
             plugins: {
+                legend: { display: false },
+
                 datalabels: {
                     anchor: 'end',
                     align: 'top',
-                    color: '#000',
-                    font: { weight: 'bold', size: 10 }
+                    color: '#7a0000',
+                    font: {
+                        weight: 'bold',
+                        size: 12
+                    }
+                },
+                tooltip: {
+                    backgroundColor: '#333',
+                    displayColors: false
+                }
+            },
+
+            scales: {
+                x: {
+                    grid: {
+                        display: false   // ❌ sin líneas verticales
+                    }
+                },
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(0,0,0,0.05)' // suave
+                    },
+                    ticks: {
+                    precision: 0                }
                 }
             }
         },
         plugins: [ChartDataLabels]
     });
+
     </script>
 
     <!-- Graficos de Recuperos -->
 
 
     <script>
-    const ctxRecuperos = document.getElementById("graficoRecuperosMes");
+    
+    const ctxRecuperos = document.getElementById("graficoRecuperosMes").getContext("2d");
+
+    // 🎨 gradiente verde
+    const gradientRec = ctxRecuperos.createLinearGradient(0, 0, 0, 400);
+    gradientRec.addColorStop(0, "rgba(0, 150, 0, 0.4)");
+    gradientRec.addColorStop(1, "rgba(0, 150, 0, 0)");
 
     new Chart(ctxRecuperos, {
         type: 'line',
@@ -206,42 +260,80 @@ function selMes(btn, val) {
             datasets: [{
                 label: 'Cantidad de recuperos',
                 data: {{ cant_recuperos|safe }},
-                backgroundColor: 'rgba(0, 130, 39, 0.6)',
-                borderColor: 'rgb(1, 113, 16)',
-                borderWidth: 1
+
+                borderColor: 'rgba(0, 120, 0, 1)',
+                borderWidth: 2,
+                borderDash: [3, 3],   // línea punteada
+
+                backgroundColor: gradientRec,
+                fill: true,
+
+                pointBackgroundColor: 'rgba(0, 120, 0, 1)',
+                pointBorderColor: '#fff',
+                pointRadius: 4,
+
+                tension: 0.4
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            scales: {
-                y: { beginAtZero: true }
-            },
+
             plugins: {
+                legend: { display: false },
+
                 datalabels: {
                     anchor: 'end',
                     align: 'top',
-                    color: '#000',
-                    font: { weight: 'bold', size: 10 }
+                    color: '#006400',
+                    font: {
+                        weight: 'bold',
+                        size: 11
+                    }
+                }
+            },
+
+            scales: {
+                x: {
+                    grid: { display: false }
+                },
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(0,0,0,0.05)'
+                    },
+                    ticks: {
+                        precision: 0
+                    }
                 }
             }
         },
         plugins: [ChartDataLabels]
     });
+
     </script>
+
 
 
     <!-- INTENTO Mapa de puntos GPS -->
 
     <!-- Leaflet -->
+    <div style="
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 40px;
+    ">
+
     <link
         rel="stylesheet"
         href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
     />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+    </script>
 
     <div id="map"
-        style="height: 500px; width: 500px; border-radius: 12px; margin-top: 60px; margin-left: auto; margin-right: auto;">
+        style="height: 400px; width: 400px; border-radius: 12px; margin-top: 60px; margin-left: auto; margin-right: auto;">
     </div>
 
     <script>
@@ -282,59 +374,10 @@ function selMes(btn, val) {
         }
     </script>
 
-    <!-- INTENTO Mapa de puntos GPS -->
 
-    <!-- Leaflet -->
-    <link
-        rel="stylesheet"
-        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    
-    <!-- DIV del mapa -->
-    <div id="map"
-        style="height: 500px; width: 500px; border-radius: 12px; margin: 60px auto;">
-    </div>
 
-    <!-- Script del mapa -->
-    <script>
-        const puntos = {{ puntos_gps_robos|safe }};
-        console.log("Puntos GPS:", puntos);
-
-        if (puntos.length > 0) {
-
-            const map = L.map('map').setView([-34.61, -58.38], 12);
-
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; OpenStreetMap'
-            }).addTo(map);
-
-            const bounds = [];
-
-            puntos.forEach(p => {
-                const lat = parseFloat(p.lat);
-                const lng = parseFloat(p.lng);
-
-                if (!isNaN(lat) && !isNaN(lng)) {
-                    L.circleMarker([lat, lng], {
-                        radius: 5,
-                        color: '#fe5b76',
-                        fillOpacity: 0.7
-                }).addTo(map);
-
-                bounds.push([lat, lng]);
-            }
-        });
-
-        if (bounds.length > 0) {
-            map.fitBounds(bounds);
-        }
-    }
-    </script>
-
-    
     <div id="map_estaciones"
-        style="height: 500px; width: 500px; border-radius: 12px; margin: 60px auto;">
+        style="height: 400px; width: 400px; border-radius: 12px; margin: 60px auto;">
     </div>
     
     <script>
@@ -358,8 +401,8 @@ function selMes(btn, val) {
                 if (!isNaN(lat) && !isNaN(lng)) {
 
                     L.circleMarker([lat, lng], {
-                        radius: 6,
-                        color: '#ff8800',   // 🔥 color distinto (estaciones)
+                        radius: 4,
+                        color: '#ff0000',   // 🔥 color distinto (estaciones)
                         fillOpacity: 0.8
                     }).addTo(mapEst);
 
@@ -376,6 +419,8 @@ function selMes(btn, val) {
             console.warn("No hay estaciones para mostrar");
         }
     </script>
+
+    </div>
 
 
 

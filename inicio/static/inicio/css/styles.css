@@ -122,6 +122,8 @@ body {
 }
 
 .navbar {
+  display: flex;
+  padding: 15px 30px;
   width: 100%;
   background: #919191;
   justify-content: center;
@@ -523,4 +525,24 @@ body {
   text-shadow: 0px 0px 12px #cae2fd;
 }
 
-/* ---------------------PROBANDO CSS DE PABL---------------------- */
+/* ---------------------SUMANDO ESTILOS---------------------- */
+
+
+
+.contenedor-dashboard {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    padding: 20px;
+    margin: 20px auto;
+
+    width: 80%;              /* 🔥 CLAVE */
+    border-radius: 12px;     /* 🔥 CLAVE */
+
+    background: linear-gradient(144deg, #AF40FF, #4130b0 50%, #00DDEB);
+    box-shadow: rgba(151, 65, 252, 0.2) 0 15px 30px -5px;
+}
+
+
+

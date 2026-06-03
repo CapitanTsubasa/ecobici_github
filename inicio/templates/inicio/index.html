@@ -15,18 +15,18 @@
 
 
 <body>
-    <!-- PRINCIPIO DE PRUEBA BARRA/MENU --> 
-<div class="navbar">
-  <a href="{% url 'index' %}" class="btn"><span>INICIO</span></a>
-  <a href="{% url 'viajes' %}" class="btn"><span>VIAJES</span></a>
-  <a href="{% url 'motivos' %}" class="btn"><span>PP | DESAPARECIDAS</span></a>
-  <a href="{% url 'usuarios' %}" class="btn"><span>USUARIOS</span></a>
-  <a href="{% url 'grafico_productos' %}" class="btn"><span>ANÁLISIS DE PRODUCTOS</span></a>
-  <a href="{% url 'auditoria' %}" class="btn"><span>AUDITORÍA</span></a>
-</div>
-
-<!-- ICONOS DE REDES SOCIALES --> 
-<div>
+<div style="display: flex; gap: 20px; margin-bottom: 20px; justify-content: center;
+ align-items: center; box-shadow: rgba(151, 65, 252, 0.2) 0 15px 30px -5px;
+  background-image: linear-gradient(144deg,#AF40FF, #4130b0 50%,#00DDEB);">                                                                                              <!-- HEADER --> 
+  <div class="navbar">
+    <a href="{% url 'index' %}" class="btn"><span>INICIO</span></a>
+    <a href="{% url 'viajes' %}" class="btn"><span>VIAJES</span></a>
+    <a href="{% url 'motivos' %}" class="btn"><span>PP | DESAPARECIDAS</span></a>
+    <a href="{% url 'usuarios' %}" class="btn"><span>USUARIOS</span></a>
+    <a href="{% url 'grafico_productos' %}" class="btn"><span>ANÁLISIS DE PRODUCTOS</span></a>
+    <a href="{% url 'auditoria' %}" class="btn"><span>AUDITORÍA</span></a>
+  
+  
   <ul class="wrapper">
 
     <li class="icon facebook">
@@ -76,18 +76,16 @@
       </svg>
     </li>
   </ul>
+  </div>
 </div>
 
-    <!-- FIN DE PRUEBA BARRA -->
+                                                                                              <!-- FIN HEADER --> 
 
-    
-
+                                                                                              <!-- FIN REDES SOCIALES --> 
+                                                                                               
 {% block content %}
-    <!--
-    <button class="button" data-text="Awesome">
-        <span class="actual-text">&nbsp;Proyecto Ecobici Web&nbsp;</span>
-    </button>
-    -->
+
+
 
 <h2>Cantidad de bicicletas por estado</h2>
 <div style="display: flex; justify-content: left; background: white; padding: 15px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
@@ -126,6 +124,9 @@
         config
     );
 </script>
+
+
+
 {% endblock content %}
 
 </body>
