@@ -123,12 +123,12 @@ body {
 
 .navbar {
   display: flex;
-  padding: 15px 30px;
+  padding: 15px 15px;
   width: 100%;
   background: #919191;
   justify-content: center;
   align-items: center;
-  box-shadow: rgba(151, 65, 252, 0.2) 0 15px 30px -5px; 
+  box-shadow: rgba(151, 65, 252, 0.2) 0 15px 15px -5px; 
   background-image: linear-gradient(144deg,#AF40FF, #5B42F3 50%,#00DDEB);
 }
 
@@ -543,6 +543,67 @@ body {
     background: linear-gradient(144deg, #AF40FF, #4130b0 50%, #00DDEB);
     box-shadow: rgba(151, 65, 252, 0.2) 0 15px 30px -5px;
 }
+
+/* probando estrucutra html */
+
+
+.dashboard {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr; /* 3 columnas */
+    gap: 20px;
+    padding: 20px;
+}
+
+/* columnas */
+.col {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* tarjetas */
+.card {
+    background: rgb(255, 255, 255);
+    border-radius: 12px;
+    padding: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    height: 300px;
+}
+
+/* mapas */
+.mapa {
+    height: 300px;
+}
+
+#map_robos,
+#map_estaciones {
+    height: 100%;
+    width: 100%;
+}
+
+/* lado derecho */
+.derecha .fila {
+    display: flex;
+    gap: 15px;
+}
+
+/* cards chicas */
+.small {
+    flex: 1;
+    height: 300px;
+    width: 150px;
+}
+
+body {
+    background-color: #f4f6f9;
+}
+
+.card h3 {
+    font-size: 14px;
+    margin-bottom: 10px;
+    color: #555;
+}
+
 
 
 

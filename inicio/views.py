@@ -114,7 +114,7 @@ def mostrar_usuarios(request):
     drive_service = build('drive', 'v3', credentials=credentials)
 
     folder_id = '15VrRfhgGQdVeOpD2Q_BD2287WCFWif8d'
-    target_file_name = 'Bicicletas_acumulado_procesado_2025.csv'
+    target_file_name = 'Bicicletas_acumulado_procesado_2026.csv' 
 
     query = f"name='{target_file_name}' and '{folder_id}' in parents"
     results = drive_service.files().list(q=query, fields="files(id, name)").execute()
@@ -136,11 +136,38 @@ def mostrar_usuarios(request):
     # ================================
     # 📥 Carga del CSV
     # ================================
-    usuarios = pd.read_csv(file_stream, encoding="latin-1", sep="\t")
-    usuarios.columns = usuarios.columns.str.strip()
+    #usuarios = pd.read_csv(file_stream, encoding="latin-1", sep=";")
+    #usuarios.columns = usuarios.columns.str.strip()
+    
+    usuarios = pd.read_csv(
+        file_stream,
+        encoding="latin-1",
+        sep=None,                # 🔥 autodetecta separador
+        engine="python"
+    )
 
-    usuarios['Fecha_Inicio'] = pd.to_datetime(usuarios['Fecha_Inicio'], errors='coerce')
+
+    # limpiar nombres de columnas BIEN
+    usuarios.columns = (
+        usuarios.columns
+        .str.strip()
+        .str.replace('\ufeff', '')   # 🔥 BOM oculto
+    )
+
+    # DEBUG REAL (clave)
+    print("COLUMNAS REALES:")
+    for col in usuarios.columns:
+        print(repr(col))
+
+
+    usuarios['Fecha_Inicio'] = pd.to_datetime(usuarios['Fecha_Inicio'], format='mixed', utc=True)
+    #usuarios['Fecha_Inicio'] = pd.to_datetime(usuarios['Fecha_Inicio'], errors='coerce')
     usuarios = usuarios.dropna(subset=['Fecha_Inicio'])
+
+    
+    print("COLUMNAS REALES:")
+    print(usuarios.columns.tolist())
+    print(usuarios.head(2))
 
     # ================================
     # 🎯 Filtro por estación (origen)
@@ -251,7 +278,7 @@ def descargar_viajes_por_estacion(request):
     # 📂 Buscar archivo en Drive
     # ==============================
     folder_id = '15VrRfhgGQdVeOpD2Q_BD2287WCFWif8d'
-    target_file_name = 'Bicicletas_acumulado_procesado_2025.csv'
+    target_file_name = 'Bicicletas_acumulado_procesado_2026.csv'
 
     query = f"name='{target_file_name}' and '{folder_id}' in parents"
     results = drive_service.files().list(q=query, fields="files(id, name)").execute()
@@ -333,7 +360,7 @@ def grafico_productos_interactivo(request):
     drive_service = build('drive', 'v3', credentials=credentials)
 
     folder_id = '15VrRfhgGQdVeOpD2Q_BD2287WCFWif8d'
-    target_file_name = 'Bicicletas_acumulado_procesado_2025.csv'
+    target_file_name = 'Bicicletas_acumulado_procesado_2026.csv'
 
     # Buscar el archivo
     query = f"name = '{target_file_name}' and '{folder_id}' in parents"
@@ -393,7 +420,7 @@ def grafico_productos(request):
     drive_service = build('drive', 'v3', credentials=credentials)
 
     folder_id = '15VrRfhgGQdVeOpD2Q_BD2287WCFWif8d'
-    target_file_name = 'Bicicletas_acumulado_procesado_2025.csv'
+    target_file_name = 'Bicicletas_acumulado_procesado_2026.csv'
 
     # Buscar el archivo
     query = f"name='{target_file_name}' and '{folder_id}' in parents"

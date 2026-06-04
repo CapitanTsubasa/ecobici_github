@@ -94,40 +94,73 @@ function selMes(btn, val) {
         background-image: linear-gradient(144deg,#AF40FF, #0f0072 50%,#00DDEB);
     ">
         <!-- DESAPARECIDAS -->
-        <div style="background-color: rgb(255, 153, 0); color: white; padding: 15px; width: 200px; 
-                text-align: center; border-radius: 10px;">
-            <strong>DESAPARECIDAS</strong><br>
+        <div style="background-color: rgb(255, 153, 0); color: white; padding: 15px; width: 300px; 
+                text-align: center; border-radius: 10px; text-size">
+            <strong>Desaparecidas actuales</strong><br>
             <span style="font-size: 24px;">{{ casos_espera }}</span>
         </div>    
 
       <!-- ROBADAS -->
-      <div style="background-color: #cd2323; color: white; padding: 15px; width: 200px; 
+      <div style="background-color: #cd2323; color: white; padding: 15px; width: 300px; 
                   text-align: center; border-radius: 10px;">
-          <strong>ROBOS</strong><br>
+          <strong>Robos registrados en el mes</strong><br>
           <span style="font-size: 24px;">{{ casos_robada }}</span>
       </div>
 
       <!-- RECUPERADAS -->
-      <div style="background-color: #00530fff; color: white; padding: 15px; width: 200px; 
+      <div style="background-color: #00530fff; color: white; padding: 15px; width: 300px; 
                   text-align: center; border-radius: 10px;">
-          <strong>RECUPERADAS</strong><br>
+          <strong>Recuperos registrados en el mes</strong><br>
           <span style="font-size: 24px;">{{ casos_robada_recuperada }}</span>
       </div>
 
       <!-- COMISARIA -->
-      <div style="background-color: rgb(133, 133, 133); color: white; padding: 15px; width: 200px; 
+      <div style="background-color: rgb(133, 133, 133); color: white; padding: 15px; width: 300px; 
                   text-align: center; border-radius: 10px;">
-          <strong>COMISARIA</strong><br>
+          <strong>En comisaria</strong><br>
           <span style="font-size: 24px;">{{ comisaria }}</span>
       </div>
 
       <!-- VANDALISMO -->
-      <div style="background-color: rgb(133, 133, 133); color: white; padding: 15px; width: 200px; 
+      <div style="background-color: rgb(133, 133, 133); color: white; padding: 15px; width: 300px; 
                   text-align: center; border-radius: 10px;">
-          <strong>VANDALISMO</strong><br>
+          <strong>Vandalismo en el mes</strong><br>
           <span style="font-size: 24px;">{{ vandalismo }}</span>
       </div>
-  </div>
+    </div>
+    
+    
+    <div class="dashboard">
+
+        <!-- IZQUIERDA -->
+        <div class="col izquierda">
+            <div class="card"><canvas id="graficoRobosMes"></canvas></div>
+            <div class="card"><canvas id="graficoRecuperosMes"></canvas></div>
+            <div class="card"><canvas id="graficoVandalismoMes"></canvas></div>
+        </div>
+
+        <!-- CENTRO -->
+        <div class="col centro">
+            <div class="card mapa"><div id="map_robos"></div></div>
+            <div class="card mapa"><div id="map_estaciones"></div></div>
+        </div>
+
+        <!-- DERECHA -->
+        <div class="col derecha">
+
+            <div class="fila">
+                <div class="card small">Motivos Top 5</div>
+                <div class="card small">Barrios Top 5</div>
+            </div>
+
+            <div class="fila">
+                <div class="card small">Horario robos</div>
+                <div class="card small">Últimos vandalismos</div>
+            </div>
+
+        </div>
+
+    </div>
 
 
     <!-- CONTENEDOR FLEX -->
@@ -313,6 +346,73 @@ function selMes(btn, val) {
 
     </script>
 
+    
+    <script>
+    const ctxVandalismo = document.getElementById("graficoVandalismoMes").getContext("2d");
+
+    // 🎨 gradiente gris
+    const gradientVan = ctxVandalismo.createLinearGradient(0, 0, 0, 400);
+    gradientVan.addColorStop(0, "rgba(80, 80, 80, 0.4)");
+    gradientVan.addColorStop(1, "rgba(80, 80, 80, 0)");
+
+    new Chart(ctxVandalismo, {
+        type: 'line',
+        data: {
+            labels: {{ meses_vandalismo|safe }},
+            datasets: [{
+                label: 'Vandalismos mensuales',
+                data: {{ cant_vandalismo|safe }},
+
+                borderColor: 'rgba(80, 80, 80, 1)',
+                borderWidth: 2,
+                borderDash: [3, 3],   // punteado
+
+                backgroundColor: gradientVan,
+                fill: true,
+
+                pointBackgroundColor: 'rgba(80, 80, 80, 1)',
+                pointBorderColor: '#fff',
+                pointRadius: 4,
+
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+
+            plugins: {
+                legend: { display: false },
+
+                datalabels: {
+                    anchor: 'end',
+                    align: 'top',
+                    color: '#333',
+                    font: {
+                        weight: 'bold',
+                        size: 11
+                    }
+                }
+            },
+
+            scales: {
+                x: {
+                    grid: { display: false }
+                },
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(0,0,0,0.05)'
+                    },
+                    ticks: {
+                    precision: 0
+                    }
+                }
+            }
+        },
+        plugins: [ChartDataLabels]
+    });
+    </script>
 
 
     <!-- INTENTO Mapa de puntos GPS -->
