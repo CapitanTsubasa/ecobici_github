@@ -605,5 +605,20 @@ body {
 }
 
 
+/* estilos para los motivos */
+
+.motivos-card {
+    background: #e9e9e9;
+    border-radius: 16px;
+    padding: 10px;
+}
+
+.motivos-card h3 {
+    text-align: center;
+    font-style: italic;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
 
 

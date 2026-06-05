@@ -12,7 +12,6 @@
 <!-- FIN TITULO -->
 
 
-
 <!-- BARRA DE MENU DE MESES -->
 
 <form method="get" id="form-filtro">
@@ -54,32 +53,11 @@ function selMes(btn, val) {
 }
 </script>
 
+
 <!-- FIN BARRA DE MENU DE MESES -->
 
-<!--    <button class="btn btn-primary" type="submit">
-    <button class="btn btn-primary" type="submit">
-      <label><strong>Día de semana:</strong></label>
-    </button>
---> 
 
-    <!--
-    <select name="dia" onchange="this.form.submit()">
-        <option value="">Todos</option>
-        <option value="0" {% if dia_actual == '0' %}selected{% endif %}>Lunes</option>
-        <option value="1" {% if dia_actual == '1' %}selected{% endif %}>Martes</option>
-        <option value="2" {% if dia_actual == '2' %}selected{% endif %}>Miércoles</option>
-        <option value="3" {% if dia_actual == '3' %}selected{% endif %}>Jueves</option>
-        <option value="4" {% if dia_actual == '4' %}selected{% endif %}>Viernes</option>
-        <option value="5" {% if dia_actual == '5' %}selected{% endif %}>Sábado</option>
-        <option value="6" {% if dia_actual == '6' %}selected{% endif %}>Domingo</option>
-    </select>
-    
-
-    <button class="btn btn-primary" type="submit">Aplicar</button>
-</form>
--->
-
-  <!-- Tarjeta de contador -->
+  <!-- TARJETA DE CONTADOR -->
   <!-- BARRA 1 -->
     <div style="
         display: flex; 
@@ -128,8 +106,13 @@ function selMes(btn, val) {
           <span style="font-size: 24px;">{{ vandalismo }}</span>
       </div>
     </div>
-    
-    
+
+
+    <!-- FIN TARJETA DE CONTADOR -->
+
+
+    <!-- DASHBOARD | ECOBICI DIARIO -->
+
     <div class="dashboard">
 
         <!-- IZQUIERDA -->
@@ -141,7 +124,7 @@ function selMes(btn, val) {
 
         <!-- CENTRO -->
         <div class="col centro">
-            <div class="card mapa"><div id="map_robos"></div></div>
+            <div class="card mapa"><div id="map"></div></div>
             <div class="card mapa"><div id="map_estaciones"></div></div>
         </div>
 
@@ -149,7 +132,10 @@ function selMes(btn, val) {
         <div class="col derecha">
 
             <div class="fila">
-                <div class="card small">Motivos Top 5</div>
+                <div class="card small motivos-card">
+                    <h3>Motivos (Top 5)</h3>
+                    <canvas id="graficoMotivos"></canvas>
+            </div>
                 <div class="card small">Barrios Top 5</div>
             </div>
 
@@ -163,32 +149,13 @@ function selMes(btn, val) {
     </div>
 
 
-    <!-- CONTENEDOR FLEX -->
-    <div style="
-        display: flex;
-        gap: 20px;
-        justify-content: space-between;
-        align-items: justify-content;
-        width: 100%;
-        margin-right: auto
-    ">
-
-    <!-- GRAFICO ROBOS -->
-        <div style="width: 50%; height: 250px; margin: 10px;">
-            <h3 style="text-align:center;">ROBOS MENSUALES</h3>
-            <canvas id="graficoRobosMes"></canvas>
-        </div>
-
-    <!-- GRAFICO RECUPEROS -->
-        <div style="width: 50%; height: 250px; margin: 10px">
-            <h3 style="text-align:center;">RECUPEROS MENSUALES</h3>
-            <canvas id="graficoRecuperosMes"></canvas>
-        </div>
-
-    </div>
+    <!-- FIN DASHBOARD | ECOBICI DIARIO -->
 
 
 
+
+
+    <!-- ROBOS GRAFICO -->
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -274,7 +241,9 @@ function selMes(btn, val) {
 
     </script>
 
-    <!-- Graficos de Recuperos -->
+
+    <!-- FIN ROBOS GRAFICO -->
+    <!-- GRAFICOS DE RECUPEROS -->
 
 
     <script>
@@ -346,6 +315,9 @@ function selMes(btn, val) {
 
     </script>
 
+
+    <!-- FIN GRAFICOS DE RECUPEROS -->
+    <!-- GRAFICOS DE VANDALISMOS -->
     
     <script>
     const ctxVandalismo = document.getElementById("graficoVandalismoMes").getContext("2d");
@@ -415,7 +387,8 @@ function selMes(btn, val) {
     </script>
 
 
-    <!-- INTENTO Mapa de puntos GPS -->
+    <!-- FIN GRAFICOS DE VANDALISMOS -->
+    <!-- MAPA | ULTIMA COORDENADA DE GPS -->
 
     <!-- Leaflet -->
     <div style="
@@ -475,6 +448,8 @@ function selMes(btn, val) {
     </script>
 
 
+    <!-- MAPA | ULTIMA COORDENADA DE GPS -->
+
 
     <div id="map_estaciones"
         style="height: 400px; width: 400px; border-radius: 12px; margin: 60px auto;">
@@ -520,69 +495,83 @@ function selMes(btn, val) {
         }
     </script>
 
-    </div>
 
-
-
-
-
-
-
-
-<!-- FIN Mapa de puntos GPS | CODIGOS VIEJOS NO USADOS -->
-<!--
-  <form method="GET" action="">
-    <label><strong>Fecha exacta:</strong></label>
-    <input type="date" name="fecha" value="{{ fecha_actual }}" onchange="this.form.submit()">
--->
-
-<!-- PRUEBA BARRA  
-<form method="get" id="form-filtro">
-<div style="background: white; border: 1px solid #dee2e6; border-radius: 10px; padding: 1.25rem; display: flex; gap: 24px; align-items: flex-start; flex-wrap: wrap;">
-
-    AÑO
-    <div>
-      <div class="filtro-label">Año</div>
-      <div class="d-flex gap-2">
-        {% for a in años_unicos %}
-          <button type="button"
-            class="btn-filtro-año {% if a == año_actual %}activo{% endif %}"
-            onclick="selAño(this, {{ a }})">
-            {{ a }}
-          </button>
-        {% endfor %}
-        <button type="button"
-          class="btn-filtro-año {% if not año_actual %}activo{% endif %}"
-          onclick="selAño(this, '')">
-          Todos
-        </button>
-      </div>
-    </div>
-
-    <div style="width:1px; background:#dee2e6; align-self:stretch;"></div>
-
+    <!-- MOTIVOS PARA GRAFICOS CHICOS -->
     
-    MES
-        <div>
-        <div class="filtro-label">Mes</div>
-        <div class="d-flex gap-2">
-            {% for m in meses_unicos %}
-            <button type="button"
-                class="btn-filtro-mes {% if m == mes_actual %}activo{% endif %}"
-                onclick="selMes(this, '{{ m }}')">
-                {{ m }}
-            </button>
-            {% endfor %}
+    
+    <script>
+    document.addEventListener("DOMContentLoaded", function () {
 
-            <button type="button"
-                class="btn-filtro-mes {% if not mes_actual %}activo{% endif %}"
-                onclick="selMes(this, '')">
-                Todos
-            </button>
-        </div>
-        </div>
-</div>
--->
+        const canvas = document.getElementById("graficoMotivos");
+
+        if (!canvas) {
+            console.error("❌ No se encontró el canvas graficoMotivos");
+            return;
+        }
+
+        const ctxMotivos = canvas.getContext("2d");
+
+        console.log("Motivos:", {{ motivos|safe }});
+        console.log("Cantidades:", {{ cant_motivos|safe }});
+
+        new Chart(ctxMotivos, {
+            type: 'bar',
+            data: {
+                labels: {{ motivos|safe }},
+                datasets: [{
+                    data: {{ cant_motivos|safe }},
+                    backgroundColor: '#7c0000',
+                    borderRadius: 6,
+                    barThickness: 20
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+
+                plugins: {
+                    legend: { display: false },
+                    datalabels: {
+                        anchor: 'end',
+                        align: 'left',
+                        color: '#fff',
+                        font: {
+                            weight: 'bold',
+                            size: 14
+                        }
+                    }
+                },
+
+                scales: {
+                    x: {
+                        display: false
+                    },
+                    y: {
+                        grid: { display: false },
+                        ticks: {
+                            color: '#333',
+                            font: {
+                                style: 'italic',
+                            size: 11
+                            }
+                        }
+                    }
+                }
+            },
+            plugins: [ChartDataLabels]
+        });
+
+    });
+    </script>
+
+
+
+    <!-- MOTIVOS PARA GRAFICOS CHICOS -->
+
+
+    </div>
+
 
 {% endblock %}
 

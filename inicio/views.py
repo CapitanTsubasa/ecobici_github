@@ -574,8 +574,17 @@ def dashboard(request):
     df['FECHA RECUPERADA'] = pd.to_datetime(df['FECHA RECUPERADA'], errors='coerce', dayfirst=True)
 
 
+    #df_vandalismo = df_filtrado[
+    #    df_filtrado['MOTIVO'].str.contains(r'\bVANDALISMO', na=False, regex=True)
+    #]
+
+    
     df_vandalismo = df_filtrado[
-        df_filtrado['MOTIVO'].str.contains(r'\bVANDALISMO', na=False, regex=True)
+        df_filtrado['MOTIVO'].str.contains(
+            r'VANDALISMO|VANDALIZADA',
+            case=False,
+            na=False
+        )
     ]
 
     conteo_vandalismo = (
@@ -631,16 +640,7 @@ def dashboard(request):
     # DATASET EXCLUSIVO DE RECUPEROS
     # ============================
 
-    #df['FECHA RECUPERADA'] = pd.to_datetime(
-    #df['FECHA RECUPERADA'], errors='coerce', dayfirst=True
-    #)
-
-    #df_recuperos = df_filtrado[
-    #    (df_filtrado['ESTADO ACTUALIZADO'] == 'ROBADA - RECUPERADA') &
-    #    (df_filtrado['FECHA RECUPERADA'].notna())
-    #].copy()
-
-    #conteo_recuperos_mes = agrupar_por_mes(df_recuperos, 'FECHA RECUPERADA')
+    
 
     df_recuperos = df[
         (df['ESTADO ACTUALIZADO'] == 'RECUPERACION POR ROBO') &
@@ -689,13 +689,7 @@ def dashboard(request):
 
     puntos_gps = df_mapa[['lat', 'lng']].to_dict(orient='records')
 
-    #df_mapa = df_filtrado[
-    #    df_filtrado['lat'].notna() &
-    #    df_filtrado['lng'].notna()
-    #].copy()
-        #df['ESTADO ACTUALIZADO'].isin(['ROBADA', 'ROBADA - RECUPERADA']) &
-   
-    #context['puntos_gps'] = json.dumps(puntos_gps) PENDIENTE PARA ARREGLAR NO SE VE EL MAPA.
+    
 
     print("Puntos GPS:", len(puntos_gps))
     print(df_mapa[['Ultima coordenada de GPS', 'lat', 'lng']].head())
@@ -903,7 +897,7 @@ def descargar_ultimo_uso(request):
     drive_service = build('drive', 'v3', credentials=credentials)
 
     folder_id = '15VrRfhgGQdVeOpD2Q_BD2287WCFWif8d'
-    target_file_name = 'Bicicletas_acumulado_procesado_2025.csv'
+    target_file_name = 'Bicicletas_acumulado_procesado_2026.csv'
 
     query = f"name='{target_file_name}' and '{folder_id}' in parents"
     results = drive_service.files().list(q=query, fields="files(id, name)").execute()
