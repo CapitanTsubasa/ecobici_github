@@ -9,15 +9,23 @@
 
 <!-- COMENZANDO POWERBI -->
 
+<div>
+    <form method="GET">
+        <select name="estacion" multiple class="form-control">
+            {% for est in estaciones_origen %}
+                <option value="{{ est }}"
+                {% if est in estaciones_seleccionadas %}
+                    selected
+                {% endif %}
+                >
+                    {{ est }}
+                </option>
+            {% endfor %}
+        </select>
 
-<div style="display: flex; justify-content: space-around; flex-wrap: wrap;">
+        <button type="submit">Filtrar</button>
+    </form>
 
-    <div style="width: 30%;">
-        <a href="{% url 'descargar_viajes_por_estacion' %}?estacion={{ estacion_seleccionada }}"
-            class="btn btn-success">
-            Descargar CSV estaciones
-        </a>
-    </div>
 
     <div style="width: 30%;">
         <h3>Viajes por Origen (Top 10)</h3>
@@ -63,13 +71,7 @@
     </script>
     </div>
 
-    <div style="width: 30%;">
-        <a href="{% url 'descargar_viajes_por_estacion' %}?estacion={{ estacion_seleccionada }}"
-            class="btn btn-success">
-            Descargar CSV estaciones
-        </a>
-    </div>
-
+    
     <div style="width: 30%;">
         <h3>Viajes por Destino (Top 20)</h3>
         <canvas id="graficoDestino"></canvas>
@@ -134,16 +136,5 @@ new Chart(ctx, {
 });
 </script>
 
-
-<div class="card mt-4 p-3 shadow-sm">
-  {{ grafico_bicis_html|safe }}
-</div>
-
-
-<div class="mt-3">
-    <a href="{% url 'descargar_ultimo_uso' %}" class="btn btn-success">
-    ⬇️ Descargar CSV Último uso
-    </a>
-</div>
 
 {% endblock content %}

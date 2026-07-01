@@ -169,18 +169,48 @@ def mostrar_usuarios(request):
     print(usuarios.columns.tolist())
     print(usuarios.head(2))
 
-    # ================================
-    # 🎯 Filtro por estación (origen)
-    # ================================
+    # ================================ 🎯 Filtro por estación (origen) ================================
     estacion_filtro = request.GET.get('estacion')
 
     df = usuarios.copy()
     if estacion_filtro:
         df = df[df['Nombre_Inicio_Viaje'] == estacion_filtro]
 
+    
     # ================================
-    # 📊 Viajes por mes
+    # 📊 Viajes por día (base)
     # ================================
+    df['fecha'] = df['Fecha_Inicio'].dt.date
+
+    viajes_por_dia = (
+        df.groupby('fecha')
+        .size()
+        .reset_index(name='viajes')
+        .sort_values('fecha')
+    )
+
+    viajes_por_dia['fecha'] = viajes_por_dia['fecha'].astype(str)
+
+    estaciones_filtro = request.GET.getlist('estacion')
+    
+    df_filtrado = df.copy()
+
+    if estaciones_filtro:
+        df_filtrado = df_filtrado[
+            df_filtrado['Nombre_Inicio_Viaje'].isin(estaciones_filtro)
+        ]
+
+    viajes_filtrado = (
+        df_filtrado.groupby('fecha')
+        .size()
+        .reset_index(name='viajes')
+        .sort_values('fecha')
+    )
+
+    viajes_filtrado['fecha'] = viajes_filtrado['fecha'].astype(str)
+
+
+    #================================ 📊 Viajes por mes================================
     df['Mes'] = df['Fecha_Inicio'].dt.to_period('M')
 
     viajes_por_mes = (
@@ -190,37 +220,32 @@ def mostrar_usuarios(request):
     )
     viajes_por_mes['Mes'] = viajes_por_mes['Mes'].astype(str)
 
-    # ================================
-    # 📊 Viajes por origen / destino
-    # ================================
+    #================================ 📊 Viajes por origen / destino ================================
     viajes_por_origen = (
         df['Nombre_Inicio_Viaje']
         .value_counts()
-        .head(400)
+        .head(10)
         .to_dict()
     )
 
     viajes_por_destino = (
         df['Nombre_Final_Viaje']
         .value_counts()
-        .head(400)
+        .head(10)
         .to_dict()
     )
 
-    # ================================
-    # 📋 Tabla preview
-    # ================================
+    #================================📋 Tabla preview ================================
     tabla_html = df.head(50).to_html(classes="table table-striped", index=False)
 
-    # ================================
-    # 📌 Selector de estaciones
-    # ================================
+    #================================📌 Selector de estaciones ================================
     estaciones_origen = sorted(
         usuarios['Nombre_Inicio_Viaje']
         .dropna()
         .unique()
         .tolist()
     )
+
 
     # ================================
     # 📦 Contexto
@@ -233,6 +258,10 @@ def mostrar_usuarios(request):
         "viajes_values": viajes_por_mes['viajes'].tolist(),
         "estaciones_origen": estaciones_origen,
         "estacion_seleccionada": estacion_filtro,
+        "fechas": viajes_por_dia['fecha'].tolist(),
+        "viajes_total": viajes_por_dia['viajes'].tolist(),
+        "viajes_filtrado": viajes_filtrado['viajes'].tolist(),
+        "estaciones_seleccionadas": estaciones_filtro
     }
 
     return render(request, "inicio/usuarios.html", context)
