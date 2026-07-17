@@ -7,7 +7,68 @@
 
 
 
-<!-- COMENZANDO POWERBI -->
+<!-- MENUS -->
+
+
+<div class="row mb-3">
+
+    <!-- Mes -->
+    <div class="col-md-4">
+        <form id="filtroForm" method="GET">
+
+            <label>Mes</label>
+            <select name="mes" class="form-control" onchange="this.form.submit()">
+                <option value="">Todos</option>
+
+                {% for mes in meses_disponibles %}
+                <option value="{{ mes }}"
+                    {% if mes == mes_seleccionado %}
+                    selected
+                    {% endif %}
+                >
+                    {{ mes }}
+                </option>
+                {% endfor %}
+            </select>
+    </div>
+
+    <!-- Estaciones -->
+    <div class="col-md-6">
+
+        <label>Estaciones</label>
+
+        <select
+            name="estacion"
+            multiple
+            class="form-control"
+            size="8">
+
+            {% for estacion in estaciones_origen %}
+            <option
+                value="{{ estacion }}"
+                {% if estacion in estaciones_seleccionadas %}
+                selected
+                {% endif %}
+            >
+                {{ estacion }}
+            </option>
+            {% endfor %}
+        </select>
+
+    </div>
+
+    <div class="col-md-2 d-flex align-items-end">
+        <button class="btn btn-primary w-100">
+            Filtrar
+        </button>
+    </div>
+
+    </form>
+
+</div>
+
+<!-- FIN MENUS -->
+
 
 <div>
     <form method="GET">

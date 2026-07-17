@@ -220,6 +220,34 @@ def mostrar_usuarios(request):
     )
     viajes_por_mes['Mes'] = viajes_por_mes['Mes'].astype(str)
 
+    
+    usuarios['fecha'] = usuarios['Fecha_Inicio'].dt.date
+    usuarios['Mes'] = usuarios['Fecha_Inicio'].dt.strftime('%Y-%m')
+    usuarios['Dia'] = usuarios['Fecha_Inicio'].dt.strftime('%d/%m')
+
+    #================================ 📊 FILTROS PARA VIAJES ================================
+
+    mes_filtro = request.GET.get('mes')
+    df = usuarios.copy()
+
+    if mes_filtro:
+        df = df[df['Mes'] == mes_filtro]
+
+    if estaciones_filtro:
+        df = df[
+            df['Nombre_Inicio_Viaje'].isin(estaciones_filtro)
+        ]
+
+    #================================ 📊 FIN FILTROS PARA VIAJES ================================
+    
+    #================================ 📊 FILTROS PARA VIAJES ================================
+    viajes_por_dia = (
+        df.groupby('fecha')
+        .size()
+        .reset_index(name='viajes')
+        .sort_values('fecha')
+    )
+
     #================================ 📊 Viajes por origen / destino ================================
     viajes_por_origen = (
         df['Nombre_Inicio_Viaje']
@@ -246,6 +274,15 @@ def mostrar_usuarios(request):
         .tolist()
     )
 
+    
+    top_barrios = (
+        df.groupby('Barrio_Inicio_Viaje')
+        .size()
+        .reset_index(name='viajes')
+        .sort_values('viajes', ascending=False)
+        .head(15)
+    )
+
 
     # ================================
     # 📦 Contexto
@@ -261,7 +298,15 @@ def mostrar_usuarios(request):
         "fechas": viajes_por_dia['fecha'].tolist(),
         "viajes_total": viajes_por_dia['viajes'].tolist(),
         "viajes_filtrado": viajes_filtrado['viajes'].tolist(),
-        "estaciones_seleccionadas": estaciones_filtro
+        "estaciones_seleccionadas": estaciones_filtro,
+        "fechas": viajes_por_dia["fecha"].astype(str).tolist(),
+        "viajes_dia": viajes_por_dia["viajes"].tolist(),
+        "top_estaciones_labels": top_estaciones["Nombre_Inicio_Viaje"].tolist(),
+        "top_estaciones_values": top_estaciones["viajes"].tolist(),
+        "destinos_labels": top_destino["Nombre_Final_Viaje"].tolist(),
+        "destinos_values": top_destino["viajes"].tolist(),
+        "meses_disponibles": sorted(usuarios["Mes"].unique().tolist()),
+        "mes_seleccionado": mes_filtro
     }
 
     return render(request, "inicio/usuarios.html", context)
