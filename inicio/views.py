@@ -170,12 +170,24 @@ def mostrar_usuarios(request):
     print(usuarios.head(2))
 
     # ================================ 🎯 Filtro por estación (origen) ================================
-    estacion_filtro = request.GET.get('estacion')
+    #estacion_filtro = request.GET.get('estacion')
+
+    #df = usuarios.copy()
+    #if estacion_filtro:
+    #    df = df[df['Nombre_Inicio_Viaje'] == estacion_filtro]
+
+    mes_filtro = request.GET.get('mes')
+    estaciones_filtro = request.GET.getlist('estacion')
 
     df = usuarios.copy()
-    if estacion_filtro:
-        df = df[df['Nombre_Inicio_Viaje'] == estacion_filtro]
 
+    if mes_filtro:
+        df = df[df['Mes'] == mes_filtro]
+
+    if estaciones_filtro:
+        df = df[
+            df['Nombre_Inicio_Viaje'].isin(estaciones_filtro)
+        ]
     
     # ================================
     # 📊 Viajes por día (base)
@@ -225,20 +237,7 @@ def mostrar_usuarios(request):
     usuarios['Mes'] = usuarios['Fecha_Inicio'].dt.strftime('%Y-%m')
     usuarios['Dia'] = usuarios['Fecha_Inicio'].dt.strftime('%d/%m')
 
-    #================================ 📊 FILTROS PARA VIAJES ================================
-
-    mes_filtro = request.GET.get('mes')
-    df = usuarios.copy()
-
-    if mes_filtro:
-        df = df[df['Mes'] == mes_filtro]
-
-    if estaciones_filtro:
-        df = df[
-            df['Nombre_Inicio_Viaje'].isin(estaciones_filtro)
-        ]
-
-    #================================ 📊 FIN FILTROS PARA VIAJES ================================
+    
     
     #================================ 📊 FILTROS PARA VIAJES ================================
     viajes_por_dia = (
@@ -283,6 +282,30 @@ def mostrar_usuarios(request):
         .head(15)
     )
 
+    #================================ TOP ESTACIONES ORIGEN ================================
+
+    top_estaciones = (
+        df.groupby("Nombre_Inicio_Viaje")
+        .size()
+        .reset_index(name="viajes")
+        .sort_values("viajes", ascending=False)
+        .head(10)
+    )
+
+    #================================ TOP ESTACIONES DESTINO ================================
+
+    top_destino = (
+        df.groupby("Nombre_Final_Viaje")
+        .size()
+        .reset_index(name="viajes")
+        .sort_values("viajes", ascending=False)
+        .head(10)
+    )
+
+    print(top_estaciones.head())
+    print(top_destino.head())
+    #================================📋 Tabla preview ================================
+    tabla_html = df.head(50).to_html(classes="table table-striped", index=False)
 
     # ================================
     # 📦 Contexto
@@ -294,8 +317,6 @@ def mostrar_usuarios(request):
         "meses_labels": viajes_por_mes['Mes'].tolist(),
         "viajes_values": viajes_por_mes['viajes'].tolist(),
         "estaciones_origen": estaciones_origen,
-        "estacion_seleccionada": estacion_filtro,
-        "fechas": viajes_por_dia['fecha'].tolist(),
         "viajes_total": viajes_por_dia['viajes'].tolist(),
         "viajes_filtrado": viajes_filtrado['viajes'].tolist(),
         "estaciones_seleccionadas": estaciones_filtro,

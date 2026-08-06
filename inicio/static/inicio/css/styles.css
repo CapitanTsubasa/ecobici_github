@@ -6,23 +6,7 @@
 .btn-filtro-año.activo { border-color: #185FA5; color: #185FA5; font-weight: 500; }
 .btn-filtro-mes.activo { background: #185FA5; border-color: #185FA5; color: white; font-weight: 500; }
 
-
-#checkbox {
-  display: none;
-}
-
-.toggle {
-  position: relative;
-  width: 100px;
-  height: 100px;
-  cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  transition-duration: .3s;
-}
+/*                                                                 B */
 
 .bars {
   width: 100%;
@@ -32,197 +16,10 @@
   transition-duration: .3s;
 }
 
-/* #checkbox:checked + .toggle .bars {
-  margin-left: 13px;
-} */
-
-#checkbox:checked + .toggle #bar2 {
-  transform: translateY(14px) rotate(60deg);
-  margin-left: 0;
-  transform-origin: right;
-  transition-duration: .3s;
-  z-index: 2;
-}
-
-#checkbox:checked + .toggle #bar1 {
-  transform: translateY(28px) rotate(-60deg);
-  transition-duration: .3s;
-  transform-origin: left;
-  z-index: 1;
-}
-
-#checkbox:checked + .toggle {
-  transform: rotate(-90deg);
-}
-/* #checkbox:checked + .toggle #bar3 {
-  transform: rotate(90deg);
-  transition-duration: .3s;
-  transform-origin:right;
-} */
-
-.input {
-  display: flex;
-  flex-direction: row;
-  width: fit-content;
-  background-color: #848484;
-  justify-content: center;
-  border-radius: 10px;
-  gap: 7.5px;
-}
-
-.value {
-  background-color: transparent;
-  border: none;
-  padding: 5px;
-  color: rgb(128, 183, 255);
-  display: flex;
-  position: absolute;
-  gap: 5px;
-  cursor: pointer;
-  border-radius: 4px;
-  transition: all 0.2s ease;
-}
-
-.value:not(:active):hover,
-.value:focus {
-  background-color: #0052b6;
-}
-
-.value:focus,
-.value:active {
-  background-color: #0055ab;
-  outline: none;
-}
-
-.value::before {
-  content: "";
-  position: absolute;
-  top: 0px;
-  right: 0px;
-  width: 100%;
-  height: 3px;
-  background-color: #ffffff7c;
-  border-radius: 5px;
-  opacity: 0;
-}
-
-.value:focus::before,
-.value:active::before {
-  opacity: 1;
-}
-
-.value svg {
-  width: 15px;
-}
-
-body {
+.body {
   margin: 0;
   font-family: Arial, sans-serif;
   background-color: #f5f5f5;
-}
-
-.navbar {
-  display: flex;
-  padding: 15px 15px;
-  width: 100%;
-  background: #919191;
-  justify-content: center;
-  align-items: center;
-  box-shadow: rgba(151, 65, 252, 0.2) 0 15px 15px -5px; 
-  background-image: linear-gradient(144deg,#AF40FF, #5B42F3 50%,#00DDEB);
-}
-
-.navbar a {
-  text-decoration: none;
-}
-
-
-/* ---------------------SUMANDO ICONOS DE REDES SOCIALES---------------------- */
-
-.wrapper {
-  display: inline-flex;
-  list-style: none;
-  height: 100px;
-  width: 100%;
-  padding-top: 1px;
-  font-family: "Poppins", sans-serif;
-  justify-content: center;
-}
-
-.wrapper .icon {
-  position: relative;
-  background: #fff;
-  border-radius: 50%;
-  margin: 10px;
-  width: 50px;
-  height: 50px;
-  font-size: 18px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-direction: column;
-  box-shadow: 0 10px 10px rgba(0, 0, 0, 0.1);
-  cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-}
-
-.wrapper .tooltip {
-  position: absolute;
-  top: 0;
-  font-size: 14px;
-  background: #fff;
-  color: #fff;
-  padding: 5px 8px;
-  border-radius: 5px;
-  box-shadow: 0 10px 10px rgba(0, 0, 0, 0.1);
-  opacity: 0;
-  pointer-events: none;
-  transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-}
-
-.wrapper .tooltip::before {
-  position: absolute;
-  content: "";
-  height: 8px;
-  width: 8px;
-  background: #fff;
-  bottom: -3px;
-  left: 50%;
-  transform: translate(-50%) rotate(45deg);
-  transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-}
-
-.wrapper .icon:hover .tooltip {
-  top: -25px;
-  opacity: 1;
-  visibility: visible;
-  pointer-events: auto;
-}
-
-.wrapper .icon:hover span,
-.wrapper .icon:hover .tooltip {
-  text-shadow: 0px -1px 0px rgba(0, 0, 0, 0.1);
-}
-
-.wrapper .facebook:hover,
-.wrapper .facebook:hover .tooltip,
-.wrapper .facebook:hover .tooltip::before {
-  background: #1877f2;
-  color: #fff;
-}
-
-.wrapper .twitter:hover,
-.wrapper .twitter:hover .tooltip,
-.wrapper .twitter:hover .tooltip::before {
-  background: #1da1f2;
-  color: #fff;
-}
-
-.wrapper .instagram:hover,
-.wrapper .instagram:hover .tooltip,
-.wrapper .instagram:hover .tooltip::before {
-  background: #e4405f;
-  color: #fff;
 }
 
 /* ---------------------BOTON---------------------- */
@@ -324,14 +121,25 @@ body {
   width: 100%;
   filter: drop-shadow(0 0 23px var(--animation-color))
 }
-/* ---------------------BARRA/CARTA---------------------- */
+
+/*                                                                 C */
+/* ---------------------BARRA/CARTA | CARD ---------------------- */
+
 .card {
+  background-image: linear-gradient(144deg,#AF40FF, #5B42F3 50%,#00DDEB);
+  background:#fafafa;
+  border-radius: 20px;
+  box-shadow: rgba(66, 204, 98, 0.2) 0 15px 30px -5px;
   width: 500px;
   height: 50px;
-  border-radius: 20px;
-  padding: 5px;
-  box-shadow: rgba(66, 204, 98, 0.2) 0 15px 30px -5px;
-  background-image: linear-gradient(144deg,#AF40FF, #5B42F3 50%,#00DDEB);
+  padding: 16px;
+  min-height:320px;
+}
+
+.card h3 {
+    font-size: 14px;
+    margin-bottom: 10px;
+    color: #555;
 }
 
 .card__content {
@@ -340,67 +148,6 @@ body {
   width: 100%;
   height: 100%;
 }
-
-/* ---------------------Nuevos Styles---------------------- */
-
-
-
-body {
-    font-family: Arial, sans-serif;
-    background: #f2f2f2;
-    margin: 0;
-}
-
-.header {
-    background: #0b2c4a;
-    color: white;
-    display: flex;
-    justify-content: space-between;
-    padding: 15px 30px;
-}
-
-.kpis {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 10px;
-    margin: 20px;
-}
-
-.kpi {
-    padding: 15px;
-    border-radius: 20px;
-    color: white;
-    font-weight: bold;
-}
-
-.kpi span {
-    float: right;
-    font-size: 20px;
-}
-
-.red { background: #b71c1c; }
-.gray { background: #9e9e9e; }
-.yellow { background: #fbc02d; color: #333; }
-
-.grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 15px;
-    margin: 20px;
-}
-
-.panel {
-    background: white;
-    border-radius: 15px;
-    padding: 15px;
-}
-
-#map {
-    height: 300px;
-}
-
-
-
 
 .charts-row {
     display: flex;
@@ -421,35 +168,134 @@ body {
     height: 320px !important;
 }
 
-
-
-.radio-input {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  background-color: rgb(249, 249, 249);
-  padding: 4px;
-  border-radius: 5px;
-}
-
-.radio-input input {
+#checkbox {
   display: none;
 }
+/* #checkbox:checked + .toggle .bars {
+  margin-left: 13px;
+} */
 
-.radio-input .label {
-  width: 100px;
-  height: 50px;
-  background: linear-gradient(to bottom, #cecece, rgb(36, 35, 35));
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 8px;
-  transition: all 0.12s linear;
-  border-top: 1px solid #4e4d4d;
-  position: relative;
-  cursor: pointer;
-  box-shadow: 0px 17px 5px 1px rgba(255, 255, 255, 0.2);
+#checkbox:checked + .toggle #bar2 {
+  transform: translateY(14px) rotate(60deg);
+  margin-left: 0;
+  transform-origin: right;
+  transition-duration: .3s;
+  z-index: 2;
 }
+
+#checkbox:checked + .toggle #bar1 {
+  transform: translateY(28px) rotate(-60deg);
+  transition-duration: .3s;
+  transform-origin: left;
+  z-index: 1;
+}
+
+#checkbox:checked + .toggle {
+  transform: rotate(-90deg);
+}
+
+/* #checkbox:checked + .toggle #bar3 {
+  transform: rotate(90deg);
+  transition-duration: .3s;
+  transform-origin:right;
+} */
+
+.contenedor-dashboard {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    padding: 20px;
+    margin: 20px auto;
+
+    width: 80%;              /* 🔥 CLAVE */
+    border-radius: 12px;     /* 🔥 CLAVE */
+
+    background: linear-gradient(144deg, #AF40FF, #4130b0 50%, #00DDEB);
+    box-shadow: rgba(151, 65, 252, 0.2) 0 15px 30px -5px;
+}
+
+.col {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/*                                                                D */
+
+.dashboard {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr; /* 3 columnas */
+    gap: 20px;
+    padding: 20px;
+}
+
+.derecha .fila {
+    display: flex;
+    gap: 15px;
+}
+
+/*                                                                H */
+
+.header {
+    background: #0b2c4a;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    padding: 15px 30px;
+}
+
+/*                                                                I */
+
+.input {
+  display: flex;
+  flex-direction: row;
+  width: fit-content;
+  background-color: #848484;
+  justify-content: center;
+  border-radius: 10px;
+  gap: 7.5px;
+}
+
+/* N */
+
+.navbar {
+  display: flex;
+  padding: 15px 15px;
+  width: 100%;
+  background: #919191;
+  justify-content: center;
+  align-items: center;
+  box-shadow: rgba(151, 65, 252, 0.2) 0 15px 15px -5px; 
+  background-image: linear-gradient(144deg,#AF40FF, #5B42F3 50%,#00DDEB);
+}
+
+.navbar a {
+  text-decoration: none;
+}
+
+/*                                                                         K */
+
+.kpis {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin: 20px;
+}
+
+.kpi {
+    padding: 15px;
+    border-radius: 20px;
+    color: white;
+    font-weight: bold;
+}
+
+.kpi span {
+    float: right;
+    font-size: 20px;
+}
+
+/*                                                                         M */
 
 /* ✅ ACTIVO */
 .label:has(input[type="checkbox"]:checked) {
@@ -525,52 +371,12 @@ body {
   text-shadow: 0px 0px 12px #cae2fd;
 }
 
-/* ---------------------SUMANDO ESTILOS---------------------- */
+/*                                                                         M */
 
-
-
-.contenedor-dashboard {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-
-    padding: 20px;
-    margin: 20px auto;
-
-    width: 80%;              /* 🔥 CLAVE */
-    border-radius: 12px;     /* 🔥 CLAVE */
-
-    background: linear-gradient(144deg, #AF40FF, #4130b0 50%, #00DDEB);
-    box-shadow: rgba(151, 65, 252, 0.2) 0 15px 30px -5px;
-}
-
-/* probando estrucutra html */
-
-
-.dashboard {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr; /* 3 columnas */
-    gap: 20px;
-    padding: 20px;
-}
-
-/* columnas */
-.col {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-}
-
-/* tarjetas */
-.card {
-    background: rgb(255, 255, 255);
-    border-radius: 12px;
-    padding: 10px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+#map {
     height: 300px;
 }
 
-/* mapas */
 .mapa {
     height: 300px;
 }
@@ -580,32 +386,6 @@ body {
     height: 100%;
     width: 100%;
 }
-
-/* lado derecho */
-.derecha .fila {
-    display: flex;
-    gap: 15px;
-}
-
-/* cards chicas */
-.small {
-    flex: 1;
-    height: 300px;
-    width: 150px;
-}
-
-body {
-    background-color: #f4f6f9;
-}
-
-.card h3 {
-    font-size: 14px;
-    margin-bottom: 10px;
-    color: #555;
-}
-
-
-/* estilos para los motivos */
 
 .motivos-card {
     background: #e9e9e9;
@@ -620,5 +400,214 @@ body {
     margin-bottom: 10px;
 }
 
+/*                                                                         P */
 
+.panel {
+    background: white;
+    border-radius: 15px;
+    padding: 15px;
+}
+
+/*                                                                         R */
+
+.radio-input {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  background-color: rgb(249, 249, 249);
+  padding: 4px;
+  border-radius: 5px;
+}
+
+.radio-input input {
+  display: none;
+}
+
+.radio-input .label {
+  width: 100px;
+  height: 50px;
+  background: linear-gradient(to bottom, #cecece, rgb(0, 8, 126));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  transition: all 0.12s linear;
+  border-top: 1px solid #4e4d4d;
+  position: relative;
+  cursor: pointer;
+  box-shadow: 0px 17px 5px 1px rgba(255, 255, 255, 0.2);
+}
+
+/*                                                                         S */
+
+.small {
+    flex: 1;
+    height: 300px;
+    width: 150px;
+}
+
+/*                                                                         T */
+
+.toggle {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition-duration: .3s;
+}
+
+/*                                                                          V */
+
+.value {
+  background-color: transparent;
+  border: none;
+  padding: 5px;
+  color: rgb(128, 183, 255);
+  display: flex;
+  position: absolute;
+  gap: 5px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.value:not(:active):hover,
+.value:focus {
+  background-color: #0052b6;
+}
+
+.value:focus,
+.value:active {
+  background-color: #0055ab;
+  outline: none;
+}
+
+.value::before {
+  content: "";
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  width: 100%;
+  height: 3px;
+  background-color: #ffffff7c;
+  border-radius: 5px;
+  opacity: 0;
+}
+
+.value:focus::before,
+.value:active::before {
+  opacity: 1;
+}
+
+.value svg {
+  width: 15px;
+}
+
+
+/* ---------------------SUMANDO ICONOS DE REDES SOCIALES---------------------- */
+/*                                                                           W */
+
+.wrapper {
+  display: inline-flex;
+  list-style: none;
+  height: 100px;
+  width: 100%;
+  padding-top: 1px;
+  font-family: "Poppins", sans-serif;
+  justify-content: center;
+}
+
+.wrapper .icon {
+  position: relative;
+  background: #fff;
+  border-radius: 50%;
+  margin: 10px;
+  width: 50px;
+  height: 50px;
+  font-size: 18px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  box-shadow: 0 10px 10px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.wrapper .tooltip {
+  position: absolute;
+  top: 0;
+  font-size: 14px;
+  background: #fff;
+  color: #fff;
+  padding: 5px 8px;
+  border-radius: 5px;
+  box-shadow: 0 10px 10px rgba(0, 0, 0, 0.1);
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.wrapper .tooltip::before {
+  position: absolute;
+  content: "";
+  height: 8px;
+  width: 8px;
+  background: #fff;
+  bottom: -3px;
+  left: 50%;
+  transform: translate(-50%) rotate(45deg);
+  transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.wrapper .icon:hover .tooltip {
+  top: -25px;
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.wrapper .icon:hover span,
+.wrapper .icon:hover .tooltip {
+  text-shadow: 0px -1px 0px rgba(0, 0, 0, 0.1);
+}
+
+.wrapper .facebook:hover,
+.wrapper .facebook:hover .tooltip,
+.wrapper .facebook:hover .tooltip::before {
+  background: #1877f2;
+  color: #fff;
+}
+
+.wrapper .twitter:hover,
+.wrapper .twitter:hover .tooltip,
+.wrapper .twitter:hover .tooltip::before {
+  background: #1da1f2;
+  color: #fff;
+}
+
+.wrapper .instagram:hover,
+.wrapper .instagram:hover .tooltip,
+.wrapper .instagram:hover .tooltip::before {
+  background: #e4405f;
+  color: #fff;
+}
+
+
+
+
+
+
+
+
+
+
+.red { background: #b71c1c; }
+.gray { background: #9e9e9e; }
+.yellow { background: #fbc02d; color: #333; }
 
